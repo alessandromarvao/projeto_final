@@ -138,7 +138,10 @@ static void display_matrix(int time_ms, int rgb_array[5][5][3])
     {
         // Inicializa a matriz de LEDs NeoPixel.
         npInit(LED_PIN);
+
+        inicializado = true;
     }
+
     // Limpa os dados do buffer de pixels.
     npClear();
 
