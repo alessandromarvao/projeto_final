@@ -81,9 +81,9 @@ static void npInit(uint pin)
  */
 static void npSetLED(const uint index, const uint8_t r, const uint8_t g, const uint8_t b)
 {
-    leds[index].R = r;
-    leds[index].G = g;
-    leds[index].B = b;
+    leds[index].R = r * 0.66;
+    leds[index].G = g * 0.66;
+    leds[index].B = b * 0.66;
 }
 
 /**
@@ -169,28 +169,28 @@ static void turn_off()
 
 /**
  * Converte as cores de um array com n elementos em hexadecimais para um array com n elementos em rgb.
- * @param size Tamanho do array de cores hexadecimais
  * @param hex_array Array de cores hexadecimais (N elementos de 25 caracteres em hexadecimal (cores))
  * @param rgb_array Array de cores rgb[N][5][5][3] (N elementos de 5 linhas e 5 colunas de cores rgb ({r, g, b}))
  */
-static void hex_to_rgb(const uint32_t hex_array[25], int rgb_array[size][5][5][3])
+static void hex_to_rgb(const uint32_t hex_array[25], int rgb_array[5][5][3])
 {
     // Array que receberá os valores RGB
     int rgb[3];
+
     // Preencher a matriz RGB com a conversão dos valores ARGB
     for (int i = 0; i < MATRIX_ROWS * MATRIX_COLS; i++)
     {
-        rgb[0] = hex_array[size][i] & 0xFF;         // Blue
-        rgb[2] = (hex_array[size][i] >> 16) & 0xFF; // Red
-        rgb[1] = (hex_array[size][i] >> 8) & 0xFF;  // Green
+        rgb[0] = hex_array[i] & 0xFF;         // Blue
+        rgb[2] = (hex_array[i] >> 16) & 0xFF; // Red
+        rgb[1] = (hex_array[i] >> 8) & 0xFF;  // Green
 
         int row = i / MATRIX_COLS; // Cálculo da linha
         int col = i % MATRIX_COLS; // Cálculo da coluna
 
         // Armazenar os valores RGB na matriz 5x5x3
-        rgb_array[pos][row][col][0] = rgb[0]; // Red
-        rgb_array[pos][row][col][1] = rgb[1]; // Green
-        rgb_array[pos][row][col][2] = rgb[2]; // Blue
+        rgb_array[row][col][0] = rgb[0]; // Red
+        rgb_array[row][col][1] = rgb[1]; // Green
+        rgb_array[row][col][2] = rgb[2]; // Blue
     }
 }
 
