@@ -1,3 +1,6 @@
+#ifndef NEOPIXEL_H
+#define NEOPIXEL_H
+
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
@@ -135,8 +138,6 @@ static void display_matrix(int size, int rgb_array[size][25][3])
         npClear();
     }
 
-    // Aqui, você desenha nos LEDs.
-
     npWrite(); // Escreve os dados nos LEDs.F
 }
 
@@ -193,3 +194,5 @@ void display_splash_screen()
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
     hex_to_rgb(size, splash_screen_data, rgb_array);
 }
+
+#endif
