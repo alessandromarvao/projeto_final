@@ -125,7 +125,7 @@ static void display_matrix(int size, int rgb_array[size][25][3])
             for (int coluna = 0; coluna < 5; coluna++)
             {
                 int posicao = getIndex(linha, coluna);
-                int indice = coluna * 5 + linha; // Cálculo do índice correto.
+                int indice = linha * 5 + coluna; // Cálculo do índice correto.
 
                 // Define o LED com as cores RGB.
                 npSetLED(posicao, rgb_array[pos][indice][0], rgb_array[pos][indice][1], rgb_array[pos][indice][2]);
@@ -135,14 +135,17 @@ static void display_matrix(int size, int rgb_array[size][25][3])
         // Faz a gravação da matriz para os LEDs.
         npWrite();
 
-        sleep_ms(300); // Pausa de 300ms entre as animações.
+        // Pausa entre as animações para visualização.
+        sleep_ms(300);
 
         // Limpa os dados gravados na matriz de LED.
         npClear();
     }
 
-    npWrite(); // Escreve os dados finais nos LEDs.
+    // Escreve os dados finais nos LEDs.
+    npWrite();
 }
+
 
 
 /**
