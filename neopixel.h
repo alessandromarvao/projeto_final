@@ -125,7 +125,7 @@ static void display_matrix(int size, int rgb_array[size][25][3])
             for (int coluna = 0; coluna < 5; coluna++)
             {
                 int posicao = getIndex(linha, coluna);
-                npSetLED(posicao, rgb_array[pos][coluna][linha][0], rgb_array[pos][coluna][linha][1], rgb_array[pos][coluna][linha][2]);
+                npSetLED(posicao, rgb_array[pos][coluna * 5 + linha][0], rgb_array[pos][coluna * 5 + linha][1], rgb_array[pos][coluna * 5 + linha][2]);
             }
         }
 
