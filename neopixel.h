@@ -170,7 +170,7 @@ static void hex_to_rgb(int size, const uint32_t hex_array[size][25], int rgb_arr
     // Array que receberá os valores RGB
     int rgb[3];
 
-    for (int pos = 0; pos < size; i++)
+    for (int pos = 0; pos < size; pos++)
     {
         // Preencher a matriz RGB com a conversão dos valores ARGB
         for (int i = 0; i < MATRIX_ROWS * MATRIX_COLS; i++)
