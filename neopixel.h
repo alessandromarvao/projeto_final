@@ -105,17 +105,21 @@ static void npWrite()
     sleep_us(100); // Espera 100us, sinal de RESET do datasheet.
 }
 
-// Modificado do github: https://github.com/BitDogLab/BitDogLab-C/tree/main/neopixel_pio
+// Modificado do github: Porque estava sendo exibido inclinado a 90º sentido horário e espelhado.
 // Função para converter a posição do matriz para uma posição do vetor.
 int getIndex(int x, int y) {
-    // Se a linha for par (0, 2, 4), percorremos da esquerda para a direita.
-    // Se a linha for ímpar (1, 3), percorremos da direita para a esquerda.
-    if (y % 2 == 0) {
-        return 24-(y * 5 + x); // Linha par (esquerda para direita).
+    // Aplica rotação de 90° sentido horário e espelha corretamente
+    int new_x = y;        // Nova posição X (antes era Y)
+    int new_y = 4 - x;    // Nova posição Y (antes era X invertido)
+
+    // Como o deslocamento na BitDogLab é em zigue-zague, precisamos manter essa lógica
+    if (new_y % 2 == 0) {
+        return new_y * 5 + new_x; // Linha par (esquerda para direita)
     } else {
-        return 24-(y * 5 + (4 - x)); // Linha ímpar (direita para esquerda).
+        return new_y * 5 + (4 - new_x); // Linha ímpar (direita para esquerda)
     }
 }
+
 
 /**
  * Função que exibe os sprites na matriz de LED neopixel
