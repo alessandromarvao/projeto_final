@@ -300,8 +300,6 @@ void display_rain_screen()
 
         display_matrix(200, rgb_array);
     }
-
-    npWrite();  
 }
 
 void display_fire_screen() {
@@ -318,8 +316,6 @@ void display_fire_screen() {
 
         display_matrix(200, rgb_array);
     }
-
-    npWrite();  
 }
 
 #endif
