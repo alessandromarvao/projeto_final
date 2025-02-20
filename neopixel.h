@@ -26,6 +26,11 @@
 #define LED_COUNT 25
 #define LED_PIN 7
 
+// Definição dos elementos da Matriz de LED NeoPixel ws2818b (5x5 em cores RGB)
+#define MATRIX_ROWS 5
+#define MATRIX_COLS 5
+#define MATRIX_DEPTH 3
+
 // Definição de pixel GRB
 static struct pixel_t
 {
