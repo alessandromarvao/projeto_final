@@ -9,7 +9,7 @@
 
 /* Piskel data for "New Piskel" */
 
-const uint32_t new_piskel_data[25][25] = {
+const uint32_t if_logo_data[25][25] = {
 {
 0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 

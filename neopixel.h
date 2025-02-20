@@ -138,12 +138,12 @@ static void display_matrix(int time_ms, int rgb_array[5][5][3])
     {
         // Inicializa a matriz de LEDs NeoPixel.
         npInit(LED_PIN);
+        
+        // Limpa os dados do buffer de pixels.
+        npClear();
 
         inicializado = true;
     }
-
-    // Limpa os dados do buffer de pixels.
-    npClear();
 
     // Desenhando sprite contido na matriz.
     for (int linha = 0; linha < 5; linha++)
@@ -221,6 +221,105 @@ void display_splash_screen()
 
         display_matrix(300, rgb_array);
     }
+
+    npWrite();
+}
+
+/**
+ * Executa a animação do contador que forma a imagem do Super Mario (Shiu! A Nintendo não pode saber disso!)
+ */
+void display_mario_counter()
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 25;
+
+    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
+    for (int i = 0; i < size; i++)
+    {
+        hex_to_rgb(mario_data[i], rgb_array);
+
+        display_matrix(1000, rgb_array);
+    }
+
+    npWrite();    
+}
+
+void display_heart_counter()
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 25;
+
+    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
+    for (int i = 0; i < size; i++)
+    {
+        hex_to_rgb(heart_data[i], rgb_array);
+
+        display_matrix(1000, rgb_array);
+    }
+
+    npWrite();       
+}
+
+void display_if_logo_counter()
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 25;
+
+    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
+    for (int i = 0; i < size; i++)
+    {
+        hex_to_rgb(if_logo_data[i], rgb_array);
+
+        display_matrix(1000, rgb_array);
+    }
+
+    npWrite();       
+}
+
+void display_rain_screen()
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 6;
+
+    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
+    for (int i = 0; i < size; i++)
+    {
+        hex_to_rgb(rain_data[i], rgb_array);
+
+        display_matrix(1000, rgb_array);
+    }
+
+    npWrite();  
+}
+
+void display_fire_screen() {
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 6;
+
+    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
+    for (int i = 0; i < size; i++)
+    {
+        hex_to_rgb(fire_data[i], rgb_array);
+
+        display_matrix(1000, rgb_array);
+    }
+
+    npWrite();  
 }
 
 #endif
