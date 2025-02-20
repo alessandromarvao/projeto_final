@@ -108,7 +108,7 @@ static void npWrite()
 /**
  * Função que exibe os sprites na matriz de LED neopixel
  */
-static void display_matrix(int size, int rgb_array[size][25][3])
+static void display_matrix(int size, int rgb_array[size][5][5][3])
 {
     // Inicializa a matriz de LEDs NeoPixel.
     npInit(LED_PIN);
@@ -125,10 +125,7 @@ static void display_matrix(int size, int rgb_array[size][25][3])
             for (int coluna = 0; coluna < 5; coluna++)
             {
                 int posicao = getIndex(linha, coluna);
-                int indice = linha * 5 + coluna; // Cálculo do índice correto.
-
-                // Define o LED com as cores RGB.
-                npSetLED(posicao, rgb_array[pos][indice][0], rgb_array[pos][indice][1], rgb_array[pos][indice][2]);
+                npSetLED(posicao, rgb_array[pos][coluna][linha][0], rgb_array[pos][coluna][linha][1], rgb_array[pos][coluna][linha][2]);
             }
         }
 
@@ -146,8 +143,6 @@ static void display_matrix(int size, int rgb_array[size][25][3])
     npWrite();
 }
 
-
-
 /**
  * Função que apaga os LEDs da matriz
  */
@@ -163,27 +158,29 @@ static void turn_off()
  * Converte as cores de um array com n elementos em hexadecimais para um array com n elementos em rgb.
  * @param size Tamanho do array de cores hexadecimais
  * @param hex_array Array de cores hexadecimais (N elementos de 25 caracteres em hexadecimal (cores))
- * @param rgb_array Array de cores rgb (N elementos de 25 cores rgb ({r, g, b}))
+ * @param rgb_array Array de cores rgb[N][5][5][3] (N elementos de 5 linhas e 5 colunas de cores rgb ({r, g, b}))
  */
-static void hex_to_rgb(int size, const uint32_t hex_array[size][25], int rgb_array[size][25][3])
+static void hex_to_rgb(int size, const uint32_t hex_array[size][25], int rgb_array[size][5][5][3])
 {
-    // Loop sobre as linhas do array hex_array
-    for (int i = 0; i < size; i++)
+    // Array que receberá os valores RGB
+    int rgb[3];
+
+    for (int pos = 0; i < size; i++)
     {
-        // Loop sobre as colunas do array hex_array (25 colunas por linha)
-        for (int j = 0; j < 25; j++)
+        // Preencher a matriz RGB com a conversão dos valores ARGB
+        for (int i = 0; i < MATRIX_ROWS * MATRIX_COLS; i++)
         {
-            // Extrai os 8 bits mais baixos de hex_array[i][j], que correspondem ao canal vermelho
-            // Mascarando com 0xFF, mantemos apenas os 8 bits mais baixos (vermelho)
-            rgb_array[i][j][0] = hex_array[i][j] & 0xFF;
+            rgb[0] = hex_array[size][i] & 0xFF;         // Blue
+            rgb[2] = (hex_array[size][i] >> 16) & 0xFF; // Red
+            rgb[1] = (hex_array[size][i] >> 8) & 0xFF;  // Green
 
-            // Desloca os bits de hex_array[i][j] 8 posições para a direita para pegar o canal verde.
-            // Depois, mascarando com 0xFF, extraímos apenas os 8 bits do verde.
-            rgb_array[i][j][1] = (hex_array[i][j] >> 8) & 0xFF;
+            int row = i / MATRIX_COLS; // Cálculo da linha
+            int col = i % MATRIX_COLS; // Cálculo da coluna
 
-            // Desloca os bits de hex_array[i][j] 16 posições para a direita para pegar o canal azul.
-            // Depois, mascarando com 0xFF, extraímos apenas os 8 bits do azul.
-            rgb_array[i][j][2] = (hex_array[i][j] >> 16) & 0xFF;
+            // Armazenar os valores RGB na matriz 5x5x3
+            rgb_array[pos][row][col][0] = rgb[0]; // Red
+            rgb_array[pos][row][col][1] = rgb[1]; // Green
+            rgb_array[pos][row][col][2] = rgb[2]; // Blue
         }
     }
 }
@@ -194,7 +191,7 @@ static void hex_to_rgb(int size, const uint32_t hex_array[size][25], int rgb_arr
 void display_splash_screen()
 {
     // Define o tamanho do array de cores RGB
-    int rgb_array[37][25][3];
+    int rgb_array[37][5][5][3];
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 37;
 
