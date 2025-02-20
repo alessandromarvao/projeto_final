@@ -108,7 +108,7 @@ static void npWrite()
 /**
  * Função que exibe os sprites na matriz de LED neopixel
  */
-static void display_matrix(int size, int rgb_array[size][5][5][3])
+static void display_matrix(int size, int time_ms, int rgb_array[size][5][5][3])
 {
     // Inicializa a matriz de LEDs NeoPixel.
     npInit(LED_PIN);
@@ -133,7 +133,7 @@ static void display_matrix(int size, int rgb_array[size][5][5][3])
         npWrite();
 
         // Pausa entre as animações para visualização.
-        sleep_ms(300);
+        sleep_ms(time_ms);
 
         // Limpa os dados gravados na matriz de LED.
         npClear();
@@ -197,6 +197,8 @@ void display_splash_screen()
 
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
     hex_to_rgb(size, splash_screen_data, rgb_array);
+
+    display_matrix(37, 300, rgb_array);
 }
 
 #endif
