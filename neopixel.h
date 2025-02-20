@@ -108,19 +108,20 @@ static void npWrite()
 // Modificado do github: Porque estava sendo exibido inclinado a 90º sentido horário e espelhado.
 // Função para converter a posição do matriz para uma posição do vetor.
 int getIndex(int x, int y) {
-    // Espelha na horizontal
-    int mirrored_x = 4 - x;
-    // Espelha na vertical
-    int mirrored_y = 4 - y;
+    // Aplica espelhamento horizontal antes da rotação
+    int mirrored_x = 4 - x;  // Inverte a posição na horizontal
+
+    // Aplica rotação de 90° sentido horário
+    int new_x = y;          // Nova posição X (antes era Y)
+    int new_y = 4 - mirrored_x; // Nova posição Y (espelhado e rotacionado)
 
     // Ajuste para zigue-zague na matriz da BitDogLab
-    if (mirrored_y % 2 == 0) {
-        return mirrored_y * 5 + mirrored_x; // Linha par (esquerda para direita)
+    if (new_y % 2 == 0) {
+        return new_y * 5 + new_x; // Linha par (esquerda para direita)
     } else {
-        return mirrored_y * 5 + (4 - mirrored_x); // Linha ímpar (direita para esquerda)
+        return new_y * 5 + (4 - new_x); // Linha ímpar (direita para esquerda)
     }
 }
-
 
 
 /**
