@@ -208,7 +208,7 @@ void display_splash_screen()
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
     for (int i = 0; i < size; i++)
     {
-        hex_to_rgb(size, splash_screen_data[size], rgb_array);
+        hex_to_rgb(splash_screen_data[i], rgb_array);
         
         display_matrix(300, rgb_array);
     }
