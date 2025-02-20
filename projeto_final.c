@@ -64,6 +64,8 @@ int main()
         printf("IP address %d.%d.%d.%d\n", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
     }
 
+    display_splash_screen();
+
     while (true) {
         printf("Hello, world!\n");
         sleep_ms(1000);
