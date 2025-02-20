@@ -2,3 +2,4 @@ build
 pico_sdk_import.cmake
 .vscode/
 output/
+wifi_connection_data.h

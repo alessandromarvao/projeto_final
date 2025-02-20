@@ -5,6 +5,11 @@
 #include "hardware/clocks.h"
 #include "pico/cyw43_arch.h"
 
+// Define os dados de acesso à rede sem fio
+// WIFI_SSID "your_wifi_ssid"
+// WIFI_PASSWORD "your_wifi_password"
+#include "wifi_connection_data.h"
+// Biblioteca que exibe as imagens na matriz de LED RGB
 #include "neopixel.h"
 
 // I2C defines
@@ -19,15 +24,9 @@ int64_t alarm_callback(alarm_id_t id, void *user_data) {
     return 0;
 }
 
-
-
-
-
 int main()
 {
     stdio_init_all();
-
-    /*
 
     // Initialise the Wi-Fi chip
     if (cyw43_arch_init()) {
@@ -56,7 +55,7 @@ int main()
     cyw43_arch_enable_sta_mode();
 
     printf("Connecting to Wi-Fi...\n");
-    if (cyw43_arch_wifi_connect_timeout_ms("Your Wi-Fi SSID", "Your Wi-Fi Password", CYW43_AUTH_WPA2_AES_PSK, 30000)) {
+    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
         printf("failed to connect.\n");
         return 1;
     } else {
@@ -66,9 +65,8 @@ int main()
         printf("IP address %d.%d.%d.%d\n", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
     }
 
-    */
 
-    // display_splash_screen();
+    display_splash_screen();
     // display_heart_counter();
     // display_if_logo_counter();
     // display_mario_counter();
