@@ -110,36 +110,40 @@ static void npWrite()
  */
 static void display_matrix(int size, int rgb_array[size][25][3])
 {
-    // Inicializa matriz de LEDs NeoPixel.
+    // Inicializa a matriz de LEDs NeoPixel.
     npInit(LED_PIN);
 
     // Limpa os dados do buffer de pixels.
     npClear();
 
-    // Armazena todas as animações(sprites) no buffer da matriz de LEDs.
+    // Armazena todas as animações (sprites) no buffer da matriz de LEDs.
     for (int pos = 0; pos < size; pos++)
     {
-        // Desenhando Sprite contido na matriz.c
+        // Desenhando sprite contido na matriz.
         for (int linha = 0; linha < 5; linha++)
         {
             for (int coluna = 0; coluna < 5; coluna++)
             {
                 int posicao = getIndex(linha, coluna);
-                npSetLED(posicao, rgb_array[pos][coluna * 5 + linha][0], rgb_array[pos][coluna * 5 + linha][1], rgb_array[pos][coluna * 5 + linha][2]);
+                int indice = coluna * 5 + linha; // Cálculo do índice correto.
+
+                // Define o LED com as cores RGB.
+                npSetLED(posicao, rgb_array[pos][indice][0], rgb_array[pos][indice][1], rgb_array[pos][indice][2]);
             }
         }
 
-        // Faz a gravação da matriz para os leds
+        // Faz a gravação da matriz para os LEDs.
         npWrite();
 
-        sleep_ms(300);
+        sleep_ms(300); // Pausa de 300ms entre as animações.
 
-        // Limpa os dados gravados na matriz de led
+        // Limpa os dados gravados na matriz de LED.
         npClear();
     }
 
-    npWrite(); // Escreve os dados nos LEDs.F
+    npWrite(); // Escreve os dados finais nos LEDs.
 }
+
 
 /**
  * Função que apaga os LEDs da matriz
