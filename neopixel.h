@@ -106,14 +106,11 @@ static void npWrite()
 }
 
 // Modificado do github: Porque estava sendo exibido inclinado a 90º sentido horário e espelhado.
-// Função para converter a posição do matriz para uma posição do vetor.
+// Função para converter a posição da matriz para uma posição do vetor com rotação de 180° no sentido horário
 int getIndex(int x, int y) {
-    // Aplica espelhamento horizontal antes da rotação
-    int mirrored_x = 4 - x;  // Inverte a posição na horizontal
-
-    // Aplica rotação de 90° sentido horário
-    int new_x = y;          // Nova posição X (antes era Y)
-    int new_y = 4 - mirrored_x; // Nova posição Y (espelhado e rotacionado)
+    // Aplica rotação de 180° sentido horário
+    int new_x = 4 - x;  // Inverte a posição na horizontal
+    int new_y = 4 - y;  // Inverte a posição na vertical
 
     // Ajuste para zigue-zague na matriz da BitDogLab
     if (new_y % 2 == 0) {
@@ -122,7 +119,6 @@ int getIndex(int x, int y) {
         return new_y * 5 + (4 - new_x); // Linha ímpar (direita para esquerda)
     }
 }
-
 
 /**
  * Função que exibe os sprites na matriz de LED neopixel
