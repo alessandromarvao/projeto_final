@@ -125,7 +125,7 @@ int getIndex(int x, int y) {
 /**
  * Função que exibe os sprites na matriz de LED neopixel
  */
-static void display_matrix(int size, int time_ms, int rgb_array[size][5][5][3])
+static void display_matrix(int time_ms, int rgb_array[5][5][3])
 {
     // Inicializa a matriz de LEDs NeoPixel.
     npInit(LED_PIN);
@@ -133,28 +133,24 @@ static void display_matrix(int size, int time_ms, int rgb_array[size][5][5][3])
     // Limpa os dados do buffer de pixels.
     npClear();
 
-    // Armazena todas as animações (sprites) no buffer da matriz de LEDs.
-    for (int pos = 0; pos < size; pos++)
+    // Desenhando sprite contido na matriz.
+    for (int linha = 0; linha < 5; linha++)
     {
-        // Desenhando sprite contido na matriz.
-        for (int linha = 0; linha < 5; linha++)
+        for (int coluna = 0; coluna < 5; coluna++)
         {
-            for (int coluna = 0; coluna < 5; coluna++)
-            {
-                int posicao = getIndex(linha, coluna);
-                npSetLED(posicao, rgb_array[pos][coluna][linha][0], rgb_array[pos][coluna][linha][1], rgb_array[pos][coluna][linha][2]);
-            }
+            int posicao = getIndex(linha, coluna);
+            npSetLED(posicao, rgb_array[coluna][linha][0], rgb_array[coluna][linha][1], rgb_array[coluna][linha][2]);
         }
-
-        // Faz a gravação da matriz para os LEDs.
-        npWrite();
-
-        // Pausa entre as animações para visualização.
-        sleep_ms(time_ms);
-
-        // Limpa os dados gravados na matriz de LED.
-        npClear();
     }
+
+    // Faz a gravação da matriz para os LEDs.
+    npWrite();
+
+    // Pausa entre as animações para visualização.
+    sleep_ms(time_ms);
+
+    // Limpa os dados gravados na matriz de LED.
+    npClear();
 
     // Escreve os dados finais nos LEDs.
     npWrite();
@@ -177,28 +173,24 @@ static void turn_off()
  * @param hex_array Array de cores hexadecimais (N elementos de 25 caracteres em hexadecimal (cores))
  * @param rgb_array Array de cores rgb[N][5][5][3] (N elementos de 5 linhas e 5 colunas de cores rgb ({r, g, b}))
  */
-static void hex_to_rgb(int size, const uint32_t hex_array[size][25], int rgb_array[size][5][5][3])
+static void hex_to_rgb(const uint32_t hex_array[25], int rgb_array[size][5][5][3])
 {
     // Array que receberá os valores RGB
     int rgb[3];
-
-    for (int pos = 0; pos < size; pos++)
+    // Preencher a matriz RGB com a conversão dos valores ARGB
+    for (int i = 0; i < MATRIX_ROWS * MATRIX_COLS; i++)
     {
-        // Preencher a matriz RGB com a conversão dos valores ARGB
-        for (int i = 0; i < MATRIX_ROWS * MATRIX_COLS; i++)
-        {
-            rgb[0] = hex_array[size][i] & 0xFF;         // Blue
-            rgb[2] = (hex_array[size][i] >> 16) & 0xFF; // Red
-            rgb[1] = (hex_array[size][i] >> 8) & 0xFF;  // Green
+        rgb[0] = hex_array[size][i] & 0xFF;         // Blue
+        rgb[2] = (hex_array[size][i] >> 16) & 0xFF; // Red
+        rgb[1] = (hex_array[size][i] >> 8) & 0xFF;  // Green
 
-            int row = i / MATRIX_COLS; // Cálculo da linha
-            int col = i % MATRIX_COLS; // Cálculo da coluna
+        int row = i / MATRIX_COLS; // Cálculo da linha
+        int col = i % MATRIX_COLS; // Cálculo da coluna
 
-            // Armazenar os valores RGB na matriz 5x5x3
-            rgb_array[pos][row][col][0] = rgb[0]; // Red
-            rgb_array[pos][row][col][1] = rgb[1]; // Green
-            rgb_array[pos][row][col][2] = rgb[2]; // Blue
-        }
+        // Armazenar os valores RGB na matriz 5x5x3
+        rgb_array[pos][row][col][0] = rgb[0]; // Red
+        rgb_array[pos][row][col][1] = rgb[1]; // Green
+        rgb_array[pos][row][col][2] = rgb[2]; // Blue
     }
 }
 
@@ -208,14 +200,18 @@ static void hex_to_rgb(int size, const uint32_t hex_array[size][25], int rgb_arr
 void display_splash_screen()
 {
     // Define o tamanho do array de cores RGB
-    int rgb_array[37][5][5][3];
+    int rgb_array[5][5][3];
+
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 37;
 
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
-    hex_to_rgb(size, splash_screen_data, rgb_array);
-
-    display_matrix(37, 300, rgb_array);
+    for (int i = 0; i < size; i++)
+    {
+        hex_to_rgb(size, splash_screen_data[size], rgb_array);
+        
+        display_matrix(300, rgb_array);
+    }
 }
 
 #endif
