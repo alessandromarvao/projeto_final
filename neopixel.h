@@ -298,7 +298,7 @@ void display_rain_screen()
     {
         hex_to_rgb(rain_data[i], rgb_array);
 
-        display_matrix(400, rgb_array);
+        display_matrix(200, rgb_array);
     }
 
     npWrite();  
@@ -316,7 +316,7 @@ void display_fire_screen() {
     {
         hex_to_rgb(fire_data[i], rgb_array);
 
-        display_matrix(400, rgb_array);
+        display_matrix(200, rgb_array);
     }
 
     npWrite();  

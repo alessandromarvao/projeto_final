@@ -68,10 +68,17 @@ int main()
 
     */
 
-    display_splash_screen();
+    // display_splash_screen();
+    // display_heart_counter();
+    // display_if_logo_counter();
+    // display_mario_counter();
 
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+        for (int i = 0; i < 10; i++) {
+            display_fire_screen();
+        }
+        for (int i = 0; i < 10; i++) {
+            display_rain_screen();
+        }
     }
 }
