@@ -46,6 +46,9 @@ npLED_t leds[LED_COUNT];
 PIO np_pio;
 uint sm;
 
+// Confere se a função npInit já foi chamada.
+bool inicializado = false;
+
 /**
  * Inicializa a máquina PIO para controle da matriz de LEDs.
  */
@@ -112,13 +115,17 @@ static void npWrite()
 
 // Modificado do github: https://github.com/BitDogLab/BitDogLab-C/tree/main/neopixel_pio
 // Função para converter a posição do matriz para uma posição do vetor.
-int getIndex(int x, int y) {
+int getIndex(int x, int y)
+{
     // Se a linha for par (0, 2, 4), percorremos da esquerda para a direita.
     // Se a linha for ímpar (1, 3), percorremos da direita para a esquerda.
-    if (y % 2 == 0) {
-        return 24-(y * 5 + x); // Linha par (esquerda para direita).
-    } else {
-        return 24-(y * 5 + (4 - x)); // Linha ímpar (direita para esquerda).
+    if (y % 2 == 0)
+    {
+        return 24 - (y * 5 + x); // Linha par (esquerda para direita).
+    }
+    else
+    {
+        return 24 - (y * 5 + (4 - x)); // Linha ímpar (direita para esquerda).
     }
 }
 
@@ -127,9 +134,11 @@ int getIndex(int x, int y) {
  */
 static void display_matrix(int time_ms, int rgb_array[5][5][3])
 {
-    // Inicializa a matriz de LEDs NeoPixel.
-    npInit(LED_PIN);
-
+    if (!inicializado)
+    {
+        // Inicializa a matriz de LEDs NeoPixel.
+        npInit(LED_PIN);
+    }
     // Limpa os dados do buffer de pixels.
     npClear();
 
@@ -151,9 +160,6 @@ static void display_matrix(int time_ms, int rgb_array[5][5][3])
 
     // Limpa os dados gravados na matriz de LED.
     npClear();
-
-    // Escreve os dados finais nos LEDs.
-    npWrite();
 }
 
 /**
@@ -209,7 +215,7 @@ void display_splash_screen()
     for (int i = 0; i < size; i++)
     {
         hex_to_rgb(splash_screen_data[i], rgb_array);
-        
+
         display_matrix(300, rgb_array);
     }
 }
