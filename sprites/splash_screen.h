@@ -9,7 +9,7 @@
 
 /* Piskel data for "Splash Screen" */
 
-static const uint32_t splash_screen_data[37][25] = {
+const uint32_t splash_screen_data[37][25] = {
 {
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
 0x00000000, 0xffffffff, 0x00000000, 0x00000000, 0x00000000, 

@@ -9,7 +9,7 @@
 
 /* Piskel data for "Rain" */
 
-static const uint32_t rain_data[6][25] = {
+const uint32_t rain_data[6][25] = {
 {
 0x00000000, 0xffffff00, 0x00000000, 0x00000000, 0xffffffff, 
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 

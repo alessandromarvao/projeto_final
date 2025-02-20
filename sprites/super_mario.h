@@ -9,7 +9,7 @@
 
 /* Piskel data for "New Piskel" */
 
-static const uint32_t mario_data[25][25] = {
+const uint32_t mario_data[25][25] = {
 {
 0xff0000ff, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
