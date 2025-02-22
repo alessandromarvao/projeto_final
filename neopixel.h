@@ -299,9 +299,9 @@ void display_fire_screen() {
 
 void display_analogic_watch(int hora, int minutos) {
     int size = 1;
-    int time_ms = 270 * 1000; // 270 segundos (270 ms multiplicado por 1000) equivale a 4 minutos e 30 segunddos
+    int time_ms = 0; // Confere o tempo a cada minuto, para reduzir a perda da hora
 
-    display_animation(size, time_ms, get_time_array(hora, minutos));
+    display_animation(size, time_ms, get_time_sprite(hora, minutos));
 }
 
 #endif

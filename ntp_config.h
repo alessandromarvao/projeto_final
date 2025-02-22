@@ -33,6 +33,8 @@ typedef struct NTP_T_
 #define NTP_TEST_TIME (30 * 1000)
 #define NTP_RESEND_TIME (2 * 1000)
 
+static time_t ntp_received_time = 0; // Variável global para armazenar o tempo recebido
+
 // Called with results of operation
 static void ntp_result(NTP_T *state, int status, time_t *result)
 {
@@ -100,26 +102,23 @@ static void ntp_dns_found(const char *hostname, const ip_addr_t *ipaddr, void *a
 }
 
 // NTP data received
-static void ntp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
-{
+static void ntp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port) {
     NTP_T *state = (NTP_T *)arg;
     uint8_t mode = pbuf_get_at(p, 0) & 0x7;
     uint8_t stratum = pbuf_get_at(p, 1);
 
-    // Check the result
+    // Verifica o resultado
     if (ip_addr_cmp(addr, &state->ntp_server_address) && port == NTP_PORT && p->tot_len == NTP_MSG_LEN &&
-        mode == 0x4 && stratum != 0)
-    {
+        mode == 0x4 && stratum != 0) {
         uint8_t seconds_buf[4] = {0};
         pbuf_copy_partial(p, seconds_buf, sizeof(seconds_buf), 40);
         uint32_t seconds_since_1900 = seconds_buf[0] << 24 | seconds_buf[1] << 16 | seconds_buf[2] << 8 | seconds_buf[3];
         uint32_t seconds_since_1970 = seconds_since_1900 - NTP_DELTA;
-        time_t epoch = seconds_since_1970;
-        ntp_result(state, 0, &epoch);
-    }
-    else
-    {
-        printf("invalid ntp response\n");
+        ntp_received_time = seconds_since_1970; // Armazena o tempo recebido
+
+        ntp_result(state, 0, &ntp_received_time);
+    } else {
+        printf("Resposta NTP inválida\n");
         ntp_result(state, -1, NULL);
     }
     pbuf_free(p);
@@ -190,5 +189,36 @@ void run_ntp_test(void)
     free(state);
     state = NULL;
 }
+
+int get_ntp_hour(void) {
+    if (ntp_received_time == 0) {
+        return -1; // Retorna -1 se o tempo ainda não foi recebido
+    }
+
+    // Ajusta o fuso horário (subtrai 3 horas para o horário de Brasília)
+    time_t local_time = ntp_received_time - (3 * 3600);
+
+    // Converte o tempo para uma estrutura tm
+    struct tm *utc = gmtime(&local_time);
+
+    // Retorna a hora
+    return utc->tm_hour;
+}
+
+int get_ntp_minute(void) {
+    if (ntp_received_time == 0) {
+        return -1; // Retorna -1 se o tempo ainda não foi recebido
+    }
+
+    // Ajusta o fuso horário (subtrai 3 horas para o horário de Brasília)
+    time_t local_time = ntp_received_time - (3 * 3600);
+
+    // Converte o tempo para uma estrutura tm
+    struct tm *utc = gmtime(&local_time);
+
+    // Retorna os minutos
+    return utc->tm_min;
+}
+
 
 #endif
