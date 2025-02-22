@@ -7,7 +7,7 @@
 #include "lwip/dns.h"
 
 // Definições do NTP
-#define NTP_SERVER "pool.ntp.org"
+#define NTP_SERVER "a.st1.ntp.br"
 #define NTP_PORT 123
 #define NTP_MSG_LEN 48
 #define NTP_DELTA 2208988800U

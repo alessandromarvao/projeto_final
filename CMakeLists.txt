@@ -61,6 +61,7 @@ target_link_libraries(projeto_final
         hardware_pio
         hardware_clocks
         hardware_timer
+        hardware_rtc
         pico_cyw43_arch_lwip_poll
         )
 
