@@ -8,7 +8,7 @@
 // Define os dados de acesso à rede sem fio
 // WIFI_SSID "your_wifi_ssid"
 // WIFI_PASSWORD "your_wifi_password"
-#include "wifi_connection_data.h"
+// #include "wifi_connection_data.h"
 // Biblioteca que exibe as imagens na matriz de LED RGB
 #include "neopixel.h"
 
@@ -27,6 +27,8 @@ int64_t alarm_callback(alarm_id_t id, void *user_data) {
 int main()
 {
     stdio_init_all();
+
+    /*
 
     // Initialise the Wi-Fi chip
     if (cyw43_arch_init()) {
@@ -65,6 +67,7 @@ int main()
         printf("IP address %d.%d.%d.%d\n", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
     }
 
+    */
 
     display_splash_screen();
     // display_heart_counter();
@@ -73,10 +76,11 @@ int main()
 
     while (true) {
         for (int i = 0; i < 10; i++) {
-            display_fire_screen();
-        }
-        for (int i = 0; i < 10; i++) {
             display_rain_screen();
         }
+        for (int i = 0; i < 10; i++) {
+            display_fire_screen();
+        }
+        sleep_ms(10);
     }
 }

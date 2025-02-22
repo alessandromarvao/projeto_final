@@ -213,14 +213,9 @@ void display_splash_screen()
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 37;
+    int time_ms = 400;
 
-    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
-    for (int i = 0; i < size; i++)
-    {
-        hex_to_rgb(splash_screen_data[i], rgb_array);
-
-        display_matrix(300, rgb_array);
-    }
+    display_animation(size, time_ms, splash_screen_data);
 
     npWrite();
 }
@@ -235,14 +230,9 @@ void display_mario_counter()
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 25;
+    int time_ms = 500;
 
-    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
-    for (int i = 0; i < size; i++)
-    {
-        hex_to_rgb(mario_data[i], rgb_array);
-
-        display_matrix(1000, rgb_array);
-    }
+    display_animation(size, time_ms, mario_data);
 
     npWrite();    
 }
@@ -254,67 +244,54 @@ void display_heart_counter()
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 25;
+    int time_ms = 500;
 
-    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
-    for (int i = 0; i < size; i++)
-    {
-        hex_to_rgb(heart_data[i], rgb_array);
-
-        display_matrix(1000, rgb_array);
-    }
+    display_animation(size, time_ms, heart_data);
 
     npWrite();       
 }
 
 void display_if_logo_counter()
 {
-    // Define o tamanho do array de cores RGB
-    int rgb_array[5][5][3];
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 25;
+    int time_ms = 500;
 
-    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
-    for (int i = 0; i < size; i++)
-    {
-        hex_to_rgb(if_logo_data[i], rgb_array);
-
-        display_matrix(1000, rgb_array);
-    }
+    display_animation(size, time_ms, if_logo_data);
 
     npWrite();       
 }
 
 void display_rain_screen()
 {
-    // Define o tamanho do array de cores RGB
-    int rgb_array[5][5][3];
-
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 6;
+    int time_ms = 200;
 
-    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
-    for (int i = 0; i < size; i++)
-    {
-        hex_to_rgb(rain_data[i], rgb_array);
-
-        display_matrix(200, rgb_array);
-    }
+    display_animation(size, time_ms, rain_data);
 }
 
 void display_fire_screen() {
-    // Define o tamanho do array de cores RGB
-    int rgb_array[5][5][3];
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 6;
+    int time_ms = 100;
+
+    display_animation(size, time_ms, fire_data);
+
+}
+
+void display_animation(int size, int time_ms, const uint32_t hex_array[][25]){
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
 
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
     for (int i = 0; i < size; i++)
     {
-        hex_to_rgb(fire_data[i], rgb_array);
+        hex_to_rgb(hex_array[i], rgb_array);
 
-        display_matrix(200, rgb_array);
+        display_matrix(time_ms, rgb_array);
     }
 }
 
