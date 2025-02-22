@@ -7,9 +7,10 @@
 #define NTP_SERVER "pool.ntp.org"
 #define NTP_PORT 123
 #define NTP_DELTA 2208988800UL
-#define BRAZIL_FORTALEZA_TIMEZONE_OFFSET (-3 * 3600)  // UTC-3, ou seja, -3 horas (em segundos)
+#define BRAZIL_FORTALEZA_TIMEZONE_OFFSET (-3 * 3600) // UTC-3, ou seja, -3 horas (em segundos)
 
-void set_time_from_ntp() {
+void set_time_from_ntp()
+{
     struct sockaddr_in server_addr;
     int sockfd;
     char buffer[48] = {0};
@@ -19,31 +20,36 @@ void set_time_from_ntp() {
 
     // Cria o socket UDP
     sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sockfd < 0) {
+    if (sockfd < 0)
+    {
         printf("Erro ao criar socket!\n");
         return;
     }
 
     // Configura o endereço do servidor NTP
     struct hostent *he = gethostbyname(NTP_SERVER);
-    if (he == NULL) {
+    if (he == NULL)
+    {
         printf("Erro ao resolver nome do servidor NTP\n");
         close(sockfd);
         return;
     }
+
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(NTP_PORT);
     memcpy(&server_addr.sin_addr, he->h_addr, he->h_length);
 
     // Envia o pedido NTP
-    if (sendto(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+    if (sendto(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    {
         printf("Erro ao enviar o pedido NTP\n");
         close(sockfd);
         return;
     }
 
     // Recebe a resposta NTP
-    if (recv(sockfd, buffer, sizeof(buffer), 0) < 0) {
+    if (recv(sockfd, buffer, sizeof(buffer), 0) < 0)
+    {
         printf("Erro ao receber resposta NTP\n");
         close(sockfd);
         return;
@@ -65,13 +71,14 @@ void set_time_from_ntp() {
 
     // Converte o timestamp para a estrutura de tempo
     struct tm *tm_info;
-    tm_info = gmtime((time_t*)&ntp_time);
+    tm_info = gmtime((time_t *)&ntp_time);
 
     // Configura o RTC com a hora obtida
     set_time(tm_info);
 }
 
-void set_time(struct tm *tm_info) {
+void set_time(struct tm *tm_info)
+{
     // Aqui você deve configurar o RTC do Raspberry Pi Pico com a hora obtida
     // O Pico SDK não possui suporte direto para RTC, então você pode configurar o relógio de software se necessário.
     // Isso depende do ambiente que você está usando para configurar o relógio (RTC externo ou RTC de software).
