@@ -14,6 +14,8 @@
 int main()
 {
     stdio_init_all();
+
+    wifi_config();
     
     run_ntp_test();
 
