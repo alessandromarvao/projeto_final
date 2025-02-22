@@ -13,6 +13,8 @@ int main()
 {
     stdio_init_all();
 
+    wifi_config();
+
     display_splash_screen();
     // display_heart_counter();
     // display_if_logo_counter();

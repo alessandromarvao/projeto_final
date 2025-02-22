@@ -24,13 +24,15 @@ int64_t alarm_callback(alarm_id_t id, void *user_data)
     return 0;
 }
 
+/**
+ * Configura e inicia a conexão via Wi-Fi
+ */
 void wifi_config()
 {
     // Initialise the Wi-Fi chip
     if (cyw43_arch_init())
     {
         printf("Wi-Fi init failed\n");
-        return -1;
     }
 
     // I2C Initialisation. Using it at 400Khz.
@@ -57,7 +59,6 @@ void wifi_config()
     if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000))
     {
         printf("failed to connect.\n");
-        return 1;
     }
     else
     {
