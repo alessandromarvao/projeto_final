@@ -6,14 +6,16 @@
 #include "neopixel.h"
 // Biblioteca de configuração e acesso à rede sem fio
 #include "wifi_config.h"
+// Biblioteca de configuração e acesso ao servidor NTP
+#include "ntp_config.h"
 
 
 
 int main()
 {
     stdio_init_all();
-
-    wifi_config();
+    
+    run_ntp_test();
 
     display_splash_screen();
     // display_heart_counter();
