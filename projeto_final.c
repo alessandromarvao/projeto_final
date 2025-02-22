@@ -15,7 +15,7 @@ int main()
 {
     stdio_init_all();
 
-    sleep_ms(5000);
+    display_splash_screen();
 
     wifi_config();
     
@@ -23,16 +23,15 @@ int main()
 
     run_ntp_test();
 
-    display_splash_screen();
     // display_heart_counter();
     // display_if_logo_counter();
     // display_mario_counter();
 
     while (true) {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             display_rain_screen();
         }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             display_fire_screen();
         }
         sleep_ms(10);

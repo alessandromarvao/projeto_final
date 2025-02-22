@@ -212,8 +212,8 @@ void display_splash_screen()
     int rgb_array[5][5][3];
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
-    int size = 37;
-    int time_ms = 400;
+    int size = 28;
+    int time_ms = 300;
 
     display_animation(size, time_ms, splash_screen_data);
 
@@ -267,7 +267,7 @@ void display_rain_screen()
 {
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 6;
-    int time_ms = 200;
+    int time_ms = 100;
 
     display_animation(size, time_ms, rain_data);
 }

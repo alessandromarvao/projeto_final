@@ -145,54 +145,49 @@ static NTP_T *ntp_init(void)
     return state;
 }
 
-// Runs ntp test forever
+// Executa o teste NTP uma única vez
 void run_ntp_test(void)
 {
     NTP_T *state = ntp_init();
     if (!state)
         return;
-    while (true)
+
+    // Configura o alarme para reenvio em caso de falha
+    state->ntp_resend_alarm = add_alarm_in_ms(NTP_RESEND_TIME, ntp_failed_handler, state, true);
+
+    // Faz a requisição DNS para o servidor NTP
+    cyw43_arch_lwip_begin();
+    int err = dns_gethostbyname(NTP_SERVER, &state->ntp_server_address, ntp_dns_found, state);
+    cyw43_arch_lwip_end();
+
+    state->dns_request_sent = true;
+    if (err == ERR_OK)
     {
-        if (absolute_time_diff_us(get_absolute_time(), state->ntp_test_time) < 0 && !state->dns_request_sent)
-        {
-            // Set alarm in case udp requests are lost
-            state->ntp_resend_alarm = add_alarm_in_ms(NTP_RESEND_TIME, ntp_failed_handler, state, true);
+        ntp_request(state); // Requisição direta se o DNS estiver em cache
+    }
+    else if (err != ERR_INPROGRESS)
+    {
+        printf("dns request failed\n");
+        ntp_result(state, -1, NULL);
+    }
 
-            // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
-            // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
-            // these calls are a no-op and can be omitted, but it is a good practice to use them in
-            // case you switch the cyw43_arch type later.
-            cyw43_arch_lwip_begin();
-            int err = dns_gethostbyname(NTP_SERVER, &state->ntp_server_address, ntp_dns_found, state);
-            cyw43_arch_lwip_end();
-
-            state->dns_request_sent = true;
-            if (err == ERR_OK)
-            {
-                ntp_request(state); // Cached result
-            }
-            else if (err != ERR_INPROGRESS)
-            { // ERR_INPROGRESS means expect a callback
-                printf("dns request failed\n");
-                ntp_result(state, -1, NULL);
-            }
-        }
+    // Aguarda a resposta do NTP (não entra em loop infinito)
 #if PICO_CYW43_ARCH_POLL
-        // if you are using pico_cyw43_arch_poll, then you must poll periodically from your
-        // main loop (not from a timer interrupt) to check for Wi-Fi driver or lwIP work that needs to be done.
+    while (state->dns_request_sent)
+    {
         cyw43_arch_poll();
-        // you can poll as often as you like, however if you have nothing else to do you can
-        // choose to sleep until either a specified time, or cyw43_arch_poll() has work to do:
-        cyw43_arch_wait_for_work_until(state->dns_request_sent ? at_the_end_of_time : state->ntp_test_time);
+    }
 #else
-        // if you are not using pico_cyw43_arch_poll, then WiFI driver and lwIP work
-        // is done via interrupt in the background. This sleep is just an example of some (blocking)
-        // work you might be doing.
-        sleep_ms(1000);
+    // Se não estiver usando pico_cyw43_arch_poll, aguarda um tempo suficiente para a resposta
+    sleep_ms(5000); // Aguarda 5 segundos para a resposta
 #endif
+
+    // Libera recursos
+    if (state->ntp_pcb)
+    {
+        udp_remove(state->ntp_pcb);
     }
     free(state);
-
     state = NULL;
 }
 
