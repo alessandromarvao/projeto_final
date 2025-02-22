@@ -9,6 +9,8 @@
 // Biblioteca gerada pelo arquivo .pio durante compilação.
 #include "ws2818b.pio.h"
 
+// Animação que emula os ponteiros das horas e minutos na matriz de led
+#include "sprites/analogic_watch.h"
 // Animação de fogo
 #include "sprites/fire.h"
 // Animação para o temporizador no formato de coração
@@ -203,6 +205,19 @@ static void hex_to_rgb(const uint32_t hex_array[25], int rgb_array[5][5][3])
     }
 }
 
+void display_animation(int size, int time_ms, const uint32_t hex_array[][25]){
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
+    for (int i = 0; i < size; i++)
+    {
+        hex_to_rgb(hex_array[i], rgb_array);
+
+        display_matrix(time_ms, rgb_array);
+    }
+}
+
 /**
  * Executa a animação do sprite da tela inicial na matriz de LED
  */
@@ -282,17 +297,11 @@ void display_fire_screen() {
 
 }
 
-void display_animation(int size, int time_ms, const uint32_t hex_array[][25]){
-    // Define o tamanho do array de cores RGB
-    int rgb_array[5][5][3];
+void display_analogic_watch(int hora, int minutos) {
+    int size = 1;
+    int time_ms = 270 * 1000; // 270 segundos (270 ms multiplicado por 1000) equivale a 4 minutos e 30 segunddos
 
-    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
-    for (int i = 0; i < size; i++)
-    {
-        hex_to_rgb(hex_array[i], rgb_array);
-
-        display_matrix(time_ms, rgb_array);
-    }
+    display_animation(size, time_ms, get_time_array(hora, minutos));
 }
 
 #endif
