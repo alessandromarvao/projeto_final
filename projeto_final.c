@@ -15,8 +15,12 @@ int main()
 {
     stdio_init_all();
 
+    sleep_ms(5000);
+
     wifi_config();
     
+    sleep_ms(1000);
+
     run_ntp_test();
 
     display_splash_screen();
