@@ -46,15 +46,52 @@ void btn_callback(uint gpio, uint32_t events)
         if (!last_btn_A_state && btn_A_state)
         {
             btn_A_state = !gpio_get(BTN_A_PIN);
-            // printf("Botão A pressionado.\n");
+            printf("Botão A pressionado.\n");
         }
         else if (!last_btn_B_state && btn_B_state)
         {
             btn_B_state = !gpio_get(BTN_B_PIN);
-            // printf("Botão B pressionado.\n");
+            printf("Botão B pressionado.\n");
         }
     }
 }
+
+/**
+ * Função que verifica o estado da conexão com o Wi-Fi.
+ * Se houver conexão estabelecida: Exibe o relógio analógico com o horário extraído do servidor NTP
+ * Se não houver conexão: Exibe um efeito de fogueira ou chuva
+ * @param is_connected boolean indicando se a conexão está estabelecida
+ * @return runtime Velocidade do efeito apresentado na matriz de LED
+ */
+int init_led_matrix(bool is_connected)
+{
+    int runtime = 50;
+
+    if (is_connected)
+    {
+        run_ntp_test();
+
+        // Ajusta o tempo de contagem para 30 segundos
+        runtime = 30 * 1000;
+
+        int hora = get_ntp_hour();
+        int minuto = get_ntp_minute();
+
+        if (hora != -1 && minuto != -1)
+        {
+            display_analogic_watch(hora, minuto);
+        }
+    }
+    else
+    {
+        display_rain_screen();
+    }
+
+    return runtime;
+}
+
+// Função de IRQ quando os botões A ou B forem pressionados
+void gpio_irq_handler(uint gpio, uint32_t events);
 
 int main()
 {
@@ -64,47 +101,15 @@ int main()
     init_button(BTN_B_PIN);
 
     display_splash_screen();
+    
+    display_embarcatech();
 
-    wifi_config();
+    // Estado da conexão com o Wi-Fi
+    bool is_wifi_connected = false;
+
+    is_wifi_connected = wifi_config();
 
     sleep_ms(10);
-
-    // Função de callback
-    void gpio_irq_handler(uint gpio, uint32_t events)
-    {
-
-        if (gpio == BTN_A_PIN)
-        {
-            printf("Estado do botão A: %s\n", btn_A_state ? "ligado" : "desligado");
-            printf("Último estado registrado do botão A: %s\n", last_btn_A_state ? "ligado" : "desligado");
-            // printf("Pressionou o botão A\n");
-            
-            btn_A_state = !gpio_get(BTN_A_PIN);
-            
-            if (!last_btn_A_state && btn_A_state)
-            {
-            }
-            // Atualiza o estado anterior do botão para o próximo ciclo
-            last_btn_A_state = btn_A_state;
-        }
-
-        if (gpio == BTN_B_PIN)
-        {
-            printf("Estado do botão B: %s\n", btn_B_state ? "ligado" : "desligado");
-            printf("Último estado registrado do botão B: %s\n", last_btn_B_state ? "ligado" : "desligado");
-            // printf("Pressionou o botão B\n");
-            
-            btn_B_state = !gpio_get(BTN_B_PIN);
-            
-            if (!last_btn_B_state && btn_B_state)
-            {
-            }
-            last_btn_B_state = btn_B_state;
-        }
-    }
-
-    gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_RISE, true, &gpio_irq_handler);
-    gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_RISE, true, &gpio_irq_handler);
 
     while (true)
     {
@@ -112,18 +117,7 @@ int main()
         // Exibe as horas apenas quando o temporizador estiver desligado.
         if (!timer_on)
         {
-            run_ntp_test();
-
-            // Reduz o tempo de contagem para 30 segundos para pegar o valor mais exato
-            runtime = 30 * 1000;
-
-            int hora = get_ntp_hour();
-            int minuto = get_ntp_minute();
-
-            if (hora != -1 && minuto != -1)
-            {
-                display_analogic_watch(hora, minuto);
-            }
+            runtime = init_led_matrix(is_wifi_connected);
         }
 
         // Verificação das interrupções

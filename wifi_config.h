@@ -10,6 +10,8 @@
 // WIFI_SSID "your_wifi_ssid"
 // WIFI_PASSWORD "your_wifi_password"
 #include "wifi_connection_data.h"
+// Biblioteca que exibe as imagens na matriz de LED RGB
+#include "neopixel.h"
 
 // I2C defines
 // This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
@@ -27,7 +29,7 @@ int64_t alarm_callback(alarm_id_t id, void *user_data)
 /**
  * Configura e inicia a conexão via Wi-Fi
  */
-void wifi_config()
+bool wifi_config()
 {
     // Initialise the Wi-Fi chip
     if (cyw43_arch_init())
@@ -55,17 +57,19 @@ void wifi_config()
     // Enable wifi station
     cyw43_arch_enable_sta_mode();
 
-    printf("Connecting to Wi-Fi...\n");
+    printf("Conectando ao Wi-Fi...\n");
     if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000))
     {
-        printf("failed to connect.\n");
+        printf("Falha na conexão com a rede Wi-Fi.\n");
+        return false;
     }
     else
     {
-        printf("Connected.\n");
+        printf("Conectado.\n");
         // Read the ip address in a human readable way
         uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
-        printf("IP address %d.%d.%d.%d\n", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
+        printf("Endereço IP %d.%d.%d.%d\n", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
+        return true;
     }
 }
 

@@ -282,7 +282,7 @@ void display_rain_screen()
 {
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 6;
-    int time_ms = 100;
+    int time_ms = 80;
 
     display_animation(size, time_ms, rain_data);
 }
