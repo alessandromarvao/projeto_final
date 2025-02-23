@@ -287,9 +287,10 @@ void display_mario_counter()
 }
 
 /**
- * Executa a animação do contador que forma a roupa do Super Mario (Shiu! A Nintendo não pode saber disso!)
+ * Executa a animação do contador que forma a imagem do Super Mario (Shiu! A Nintendo não pode saber disso!)
+ * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 510, para 5 minutos: 102)
  */
-void display_mario_clothes_counter()
+void display_mario_clothes_counter(int time_ms)
 {
     // Define o tamanho do array de cores RGB
     int rgb_array[5][5][3];
@@ -303,6 +304,10 @@ void display_mario_clothes_counter()
     npWrite();    
 }
 
+/**
+ * Executa a animação do contador que forma uma pokebola (Eu tô procurando conversa com a Nintendo mesmo, hein?!)
+ * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 510, para 5 minutos: 102)
+ */
 void display pokebola_counter()
 {
     // Define o tamanho do array de cores RGB

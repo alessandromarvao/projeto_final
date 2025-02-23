@@ -34,19 +34,6 @@ static void init_button(uint gpio)
     gpio_pull_up(gpio);
 }
 
-/**
- * Função de temporizador para os 25 minutos de estudo
- */
-void study_timer_callback(uint gpio, uint32_t events)
-{
-}
-
-/**
- * Função de temporizador para os 5 minutos de descanso
- */
-void rest_timer_callback(uint gpio, uint32_t events)
-{
-}
 
 /**
  * Função que verifica o estado da conexão com o Wi-Fi.
@@ -87,10 +74,61 @@ int init_led_matrix(bool is_connected)
     return runtime;
 }
 
-// Função callback para o temporizador, chamada após 25 minutos.
-bool timer_callback(alarm_id_t id, void *user_data)
+/**
+ * Função de temporizador para os 25 minutos de estudo
+ * @param id Identificador do alarme
+ * @param user_data Dados do usuário
+ * @return bool Retorna verdadeiro se o temporizador estiver ativo
+ */
+bool study_timer_callback(alarm_id_t id, void *user_data)
 {
-    // Exibe o efeito no led durante o temporizador
+    // Ativa o temporizador
+    timer_on = true;
+    // Inicializa o contador das apresentações
+    int apresentacao = 0;
+    // Inicializa o tempo de contagem
+    int timer = 510;
+
+    switch (apresentacao)
+    {
+    // Apresentação do contador do Super Mario
+    case 0:
+        display_mario_clothes_counter();
+        apresentacao++;
+        break;
+    // Apresentação do contador da pokebola  
+    default:
+        display_pokebola_counter();
+        apresentacao = 0;
+        break;
+    }
+}
+
+/**
+ * Função de temporizador para os 5 minutos de descanso
+ */
+void rest_timer_callback(uint gpio, uint32_t events)
+{
+    // Ativa o temporizador
+    timer_on = true;
+    // Inicializa o contador das apresentações
+    int apresentacao = 0;
+    // Inicializa o tempo de contagem (102 ms para o total de 5 minutos)
+    int timer = 102;
+
+    switch (apresentacao)
+    {
+    // Apresentação do contador do Super Mario
+    case 0:
+        display_mario_clothes_counter();
+        apresentacao++;
+        break;
+    // Apresentação do contador da pokebola  
+    default:
+        display_pokebola_counter();
+        apresentacao = 0;
+        break;
+    }
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -135,6 +173,7 @@ int main()
 
         if (!last_btn_A_state && btn_A_state)
         {
+            printf("Botão A pressionado. Iniciando o contador\n");
             // Contagem de 4 ciclos de estudo e descanso
             for (int i = 0; i < 4; i++)
             {
