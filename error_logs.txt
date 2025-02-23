@@ -1,0 +1,23 @@
+/home/alessandro/Raspberry/projeto_final/projeto_final.c:186:46: warning: passing argument 2 of 'add_alarm_in_ms' from incompatible pointer type [-Wincompatible-pointer-types]
+  186 |                 add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
+      |                                              ^~~~~~~~~~~~~~~~~~~~
+      |                                              |
+      |                                              _Bool (*)(alarm_id_t,  void *) {aka _Bool (*)(long int,  void *)}
+In file included from /home/alessandro/.pico-sdk/sdk/1.5.1/src/common/pico_stdlib/include/pico/stdlib.h:12,
+                 from /home/alessandro/Raspberry/projeto_final/projeto_final.c:2:
+/home/alessandro/.pico-sdk/sdk/1.5.1/src/common/pico_time/include/pico/time.h:636:72: note: expected 'alarm_callback_t' {aka 'long long int (*)(long int,  void *)'} but argument is of type '_Bool (*)(alarm_id_t,  void *)' {aka '_Bool (*)(long int,  void *)'}
+  636 | static inline alarm_id_t add_alarm_in_ms(uint32_t ms, alarm_callback_t callback, void *user_data, bool fire_if_past) {
+      |                                                       ~~~~~~~~~~~~~~~~~^~~~~~~~
+/home/alessandro/Raspberry/projeto_final/projeto_final.c:191:45: warning: passing argument 2 of 'add_alarm_in_ms' from incompatible pointer type [-Wincompatible-pointer-types]
+  191 |                 add_alarm_in_ms(TIMER_REST, rest_timer_callback, NULL, false);
+      |                                             ^~~~~~~~~~~~~~~~~~~
+      |                                             |
+      |                                             _Bool (*)(uint,  uint32_t) {aka _Bool (*)(unsigned int,  long unsigned int)}
+/home/alessandro/.pico-sdk/sdk/1.5.1/src/common/pico_time/include/pico/time.h:636:72: note: expected 'alarm_callback_t' {aka 'long long int (*)(long int,  void *)'} but argument is of type '_Bool (*)(uint,  uint32_t)' {aka '_Bool (*)(unsigned int,  long unsigned int)'}
+  636 | static inline alarm_id_t add_alarm_in_ms(uint32_t ms, alarm_callback_t callback, void *user_data, bool fire_if_past) {
+      |                                                       ~~~~~~~~~~~~~~~~~^~~~~~~~
+[55/66] Building C object CMakeFiles/projeto_final.dir/home/alessandro/.pico-sdk/sdk/1.5.1/src/rp2_common/pico_cyw43_driver/cyw43_bus_pio_spi.c.obj
+ninja: build stopped: subcommand failed.
+
+ *  The terminal process "/home/alessandro/.pico-sdk/ninja/v1.12.1/ninja '-C', '/home/alessandro/Raspberry/projeto_final/build'" terminated with exit code: 1. 
+ *  Terminal will be reused by tasks, press any key to close it. 
