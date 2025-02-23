@@ -13,10 +13,14 @@
 #include "sprites/analogic_watch.h"
 // Animação de fogo
 #include "sprites/fire.h"
+// Animação de fogo atualizada
+#include "sprites/fire_2.h"
 // Animação para o temporizador no formato de coração
 #include "sprites/heart_shape.h"
 // Animação para o temporizador com a logo do IF
 #include "sprites/if_logo.h"
+// Animação para o temporizador do Pokebola
+#include "sprites/pokebola_counter.h"
 // Animação de chuva
 #include "sprites/rain.h"
 // Animação para tela inicial
@@ -205,6 +209,12 @@ static void hex_to_rgb(const uint32_t hex_array[25], int rgb_array[5][5][3])
     }
 }
 
+/**
+ * Exibe a animação na matriz de LED
+ * @param size Tamanho da animação
+ * @param time_ms Tempo de exibição de cada frame
+ * @param hex_array Array de cores hexadecimais (N elementos de 25 caracteres em hexadecimal (cores))
+ */
 void display_animation(int size, int time_ms, const uint32_t hex_array[][25]){
     // Define o tamanho do array de cores RGB
     int rgb_array[5][5][3];
@@ -215,6 +225,30 @@ void display_animation(int size, int time_ms, const uint32_t hex_array[][25]){
         hex_to_rgb(hex_array[i], rgb_array);
 
         display_matrix(time_ms, rgb_array);
+    }
+}
+
+/**
+ * Exibe a animação do temporizador na matriz de LED
+ * @param size Tamanho da animação
+ * @param time_ms Tempo de exibição de cada frame
+ * @param hex_array Array de cores hexadecimais (N elementos de 25 caracteres em hexadecimal (cores))
+ */
+void display_timer(int size, int time_ms, const uint32_t hex_array[][25]){
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    
+    // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
+    for (int i = 0; i < size; i++)
+    {
+        // Repete 60x
+        for int(j = 0; j < 60; j++) {
+            for int (int slide = 0; slide < 2; slide++) {
+                hex_to_rgb(mario_clothes_data[i + slide], rgb_array);
+                display_matrix(time_ms, rgb_array);
+            }
+        }
     }
 }
 
@@ -245,11 +279,42 @@ void display_mario_counter()
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 25;
-    int time_ms = 500;
+    int time_ms = 25 * 60 * 1000;
 
     display_animation(size, time_ms, mario_data);
 
     npWrite();    
+}
+
+/**
+ * Executa a animação do contador que forma a roupa do Super Mario (Shiu! A Nintendo não pode saber disso!)
+ */
+void display_mario_clothes_counter()
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 26;
+    int time_ms = 510;
+
+    display_timer(size, time_ms, mario_data);
+
+    npWrite();    
+}
+
+void display pokebola_counter()
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 26;
+    int time_ms = 510;
+
+    display_timer(size, time_ms, pokebola_counter_data);
+
+    npWrite();   
 }
 
 void display_heart_counter()
@@ -294,7 +359,15 @@ void display_fire_screen() {
     int time_ms = 100;
 
     display_animation(size, time_ms, fire_data);
+}
 
+void display_fire_2_screen() {
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 6;
+    int time_ms = 100;
+
+    display_animation(size, time_ms, fire_data);
 }
 
 void display_analogic_watch(int hora, int minutos) {

@@ -10,6 +10,10 @@
 // biblioteca responsável pelo gerenciamento do temporizador
 #include "config_timer.h"
 
+// Configuração do temporizador para 25 minutos de estudo e 5 minutos de descanso
+#define TIMER_STUDY 25 * 60 * 1000 // 25 minutos em milissegundos
+#define TIMER_REST 5 * 60 * 1000    // 5 minutos em milissegundos
+
 // Estado do temporizador (ligado ou deslgado)
 static const bool timer_on = false;
 
@@ -23,11 +27,6 @@ bool btn_A_state = false;
 // Estado anterior do botão A
 volatile bool last_btn_A_state = false;
 
-// Estado atual do botão A
-bool btn_B_state = false;
-// Estado anterior do botão A
-volatile bool last_btn_B_state = false;
-
 static void init_button(uint gpio)
 {
     gpio_init(gpio);
@@ -36,24 +35,17 @@ static void init_button(uint gpio)
 }
 
 /**
- * Função que é acionada assim que o botão A for pressionado
+ * Função de temporizador para os 25 minutos de estudo
  */
-void btn_callback(uint gpio, uint32_t events)
+void study_timer_callback(uint gpio, uint32_t events)
 {
-    if (events & GPIO_IRQ_EDGE_RISE)
-    {
-        // Faça aqui o seu código
-        if (!last_btn_A_state && btn_A_state)
-        {
-            btn_A_state = !gpio_get(BTN_A_PIN);
-            printf("Botão A pressionado.\n");
-        }
-        else if (!last_btn_B_state && btn_B_state)
-        {
-            btn_B_state = !gpio_get(BTN_B_PIN);
-            printf("Botão B pressionado.\n");
-        }
-    }
+}
+
+/**
+ * Função de temporizador para os 5 minutos de descanso
+ */
+void rest_timer_callback(uint gpio, uint32_t events)
+{
 }
 
 /**
@@ -84,10 +76,21 @@ int init_led_matrix(bool is_connected)
     }
     else
     {
-        display_rain_screen();
+        for (int i = 0; i < 15; i++) {
+            display_rain_screen();
+        }
+        for (int i = 0; i < 15; i++) {
+            display_fire_2_screen();
+        }
     }
 
     return runtime;
+}
+
+// Função callback para o temporizador, chamada após 25 minutos.
+bool timer_callback(alarm_id_t id, void *user_data)
+{
+    // Exibe o efeito no led durante o temporizador
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -107,22 +110,47 @@ int main()
     // Estado da conexão com o Wi-Fi
     bool is_wifi_connected = false;
 
+    // Recebe o status da conexão com a rede Wi-Fi
     is_wifi_connected = wifi_config();
 
+    // Tempo de espera para não sobrecarregar o processador
     sleep_ms(10);
+
+    // Ativa a interrupção para o botão B (detecção de borda de descida)
+    gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
     while (true)
     {
+        // Tempo de execução do efeito na matriz de LED
         int runtime;
+     
         // Exibe as horas apenas quando o temporizador estiver desligado.
         if (!timer_on)
         {
+            // Inicializa a matriz de LED de acordo com o estado da conexão com a rede Wi-Fi
             runtime = init_led_matrix(is_wifi_connected);
         }
+        
+        btn_A_state = !gpio_get(BTN_A_PIN);
 
-        // Verificação das interrupções
-        tight_loop_contents();
+        if (!last_btn_A_state && btn_A_state)
+        {
+            // Contagem de 4 ciclos de estudo e descanso
+            for (int i = 0; i < 4; i++)
+            {
+                // Aciona o temporizador de 25 minutos para estudo
+                add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
+                // Aciona o temporizador de 5 minutos para descanso
+                add_alarm_in_ms(TIMER_REST, rest_timer_callback, NULL, false);
+            }
+        }
 
         sleep_ms(runtime);
     }
+}
+
+// Função de callback
+void gpio_irq_handler(uint gpio, uint32_t events)
+{    
+    // Interrompe o temporizador
 }
