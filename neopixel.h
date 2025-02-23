@@ -27,6 +27,8 @@
 #include "sprites/splash_screen.h"
 // Animação para o temporizador do Super Mario
 #include "sprites/super_mario.h"
+// Animação para o temporizador do Super Mario minimalista
+#include "sprites/super_mario_clothes.h"
 
 // Definição do número de LEDs e pino.
 #define LED_COUNT 25
@@ -297,7 +299,7 @@ void display_mario_clothes_counter(int time_ms)
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 26;
-    int time_ms = 510;
+    time_ms = 510;
 
     display_timer(size, time_ms, mario_data);
 
@@ -308,14 +310,14 @@ void display_mario_clothes_counter(int time_ms)
  * Executa a animação do contador que forma uma pokebola (Eu tô procurando conversa com a Nintendo mesmo, hein?!)
  * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 510, para 5 minutos: 102)
  */
-void display pokebola_counter()
+void display_pokebola_counter(int time_ms)
 {
     // Define o tamanho do array de cores RGB
     int rgb_array[5][5][3];
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 26;
-    int time_ms = 510;
+    time_ms = 510;
 
     display_timer(size, time_ms, pokebola_counter_data);
 
