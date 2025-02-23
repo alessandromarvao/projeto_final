@@ -27,11 +27,6 @@ static const uint BTN_A_PIN = 5;
 // Configuração do botão B no pino 6
 static const uint BTN_B_PIN = 6;
 
-// Estado atual do botão A
-bool btn_A_state = false;
-// Estado anterior do botão A
-volatile bool last_btn_A_state = false;
-
 static void init_button(uint gpio)
 {
     gpio_init(gpio);
@@ -120,6 +115,9 @@ int main()
     // Tempo de espera para não sobrecarregar o processador
     sleep_ms(10);
 
+    // Ativa a interrupção para o botão A (detecção de borda de descida)
+    gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+
     // Ativa a interrupção para o botão B (detecção de borda de descida)
     gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
@@ -135,24 +133,6 @@ int main()
             runtime = init_led_matrix(is_wifi_connected);
         }
 
-        btn_A_state = !gpio_get(BTN_A_PIN);
-
-        if (!last_btn_A_state && btn_A_state)
-        {
-            printf("Botão A pressionado. Iniciando o contador\n");
-
-            ciclo_atual = 0; // Reset do contador de ciclos
-
-            // Função para adicionar um alarme em milissegundos
-            // Parâmetros: TIMER_STUDY: tempo predefinido para acionar o alarme (25 minutos) 
-            //             study_timer_callback
-            //             NULL
-            //             TIMER_REST: tempo predefinido 
-            // add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, TIMER_REST);
-
-            // Todo: Exibir apresentaçao de início do ciclo de estudo
-        }
-
         sleep_ms(runtime);
     }
 }
@@ -160,6 +140,19 @@ int main()
 // Função de callback
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
-    // Interrompe o temporizador
-    printf("Botão B pressionado. Interrompendo o contador\n");
+    if(gpio == BTN_A_PIN) {
+        if (!timer_on) {
+            printf("Botão A pressionado.\n");
+            timer_on = true;
+        }
+
+    } else if (gpio == BTN_B_PIN) {
+        
+        // Garante que o botão A não seja pressionado novamente antes de ser liberado
+        if (timer_on) {
+            // Inicia o temporizador/
+            printf("Botão B pressionado. Interrompendo o contador\n");
+            timer_on = false;
+        }
+    }
 }
