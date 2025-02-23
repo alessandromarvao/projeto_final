@@ -14,10 +14,11 @@
 // Configuração do temporizador para 25 minutos de estudo e 5 minutos de descanso
 #define TIMER_STUDY 25 * 60 * 1000 // 25 minutos em milissegundos
 #define TIMER_REST 5 * 60 * 1000   // 5 minutos em milissegundos
-// Configuração do total de ciclos de estudo e descanso
-#define TOTAL_CICLOS 4
+
 // Valor inicial do ciclo
 static int ciclo_atual = 0;
+// Configuração do total de ciclos de estudo e descanso
+static const int TOTAL_CICLOS = 4;
 
 // Estado do temporizador (ligado ou deslgado)
 static bool timer_on = false;
@@ -27,6 +28,21 @@ static const uint BTN_A_PIN = 5;
 // Configuração do botão B no pino 6
 static const uint BTN_B_PIN = 6;
 
+// Variável para armazenar a tela de estudo a ser apresentada na matriz de LED
+static uint study_screen = 0;
+
+// Tempo das apresentações para os temporizadores de estudo e descanso
+static int presentation_time = 0;
+
+// Variável para armazenar o ID do alarme de estudo (para uso da interrupção do temporizador)
+static alarm_id_t study_alarm_id;
+// Variável para armazenar o ID do alarme de descanso (para uso da interrupção do temporizador)
+static alarm_id_t rest_alarm_id;
+
+/**
+ * Inicializa e configura o botão selecionado como resistor de pull-up
+ * @param gpio Pino do botão
+ */
 static void init_button(uint gpio)
 {
     gpio_init(gpio);
@@ -75,14 +91,47 @@ int init_led_matrix(bool is_connected)
     return runtime;
 }
 
-
 /**
  * Função de temporizador para os 25 minutos de estudo.
  */
 int64_t study_timer_callback(alarm_id_t id, void *user_data)
 {
     // Todo: informar a interrupção do temporizador
-    printf("Temporizador de estudo encerrado\n");
+    printf("Alarme de 25 minutos concluído!\n");
+
+    // Confere se já concluiu o total de ciclos de estudo
+    if (ciclo_atual < TOTAL_CICLOS)
+    {
+        // Inicia o temporizador de descanso
+        rest_alarm_id = add_alarm_in_ms(TIMER_REST, rest_timer_callback, NULL, false);
+
+        // Tempo de apresentação de cada frame
+        presentation_time = 102;
+
+        // inicia a apresentação da tela de estudo
+        // Alterna entre as telas de estudo
+        if (study_screen == 0)
+        {
+            display_mario_clothes_counter(presentation_time)
+                study_screen = 1;
+        }
+        else
+        {
+            display_pokebola_counter(presentation_time);
+            study_screen = 0;
+        }
+
+        // apresentação da tela de descanso
+        display_rain_screen();
+
+        // Incrementa o ciclo atual
+        ciclo_atual++;
+    }
+    else
+    {
+        printf("Ciclo de estudo finalizado\n");
+        ciclo_atual = 0;
+    }
 }
 
 /**
@@ -92,6 +141,21 @@ int64_t rest_timer_callback(alarm_id_t id, void *user_data)
 {
     // Todo: informar a interrupção do temporizador
     printf("Temporizador de descanso encerrado\n");
+
+    // Verifica se já concluiu o total de ciclos de estudo
+    if (ciclo_atual < TOTAL_CICLOS)
+    {
+        // Inicia o temporizador de estudo
+        study_alarm_id = add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
+
+        // apresentação da tela de estudo
+        display_fire_2_screen();
+    }
+    else
+    {
+        printf("Ciclo de descanso finalizado\n");
+        ciclo_atual = 0;
+    }
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -133,25 +197,67 @@ int main()
             runtime = init_led_matrix(is_wifi_connected);
         }
 
+        // Aguarda eventos de interrupção
+        tight_loop_contents();
+
         sleep_ms(runtime);
     }
+
+    return 0;
 }
 
 // Função de callback
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
-    if(gpio == BTN_A_PIN) {
-        if (!timer_on) {
-            printf("Botão A pressionado.\n");
-            timer_on = true;
-        }
+    if (gpio == BTN_A_PIN)
+    {
+        if (!timer_on)
+        {
+            printf("Botão A pressionado. Iniciando a contagem de 25 minutos\n");
 
-    } else if (gpio == BTN_B_PIN) {
-        
+            study_alarm_id = add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
+
+            // Altera o estado do temporizador para ligado
+            timer_on = true;
+
+            // Tempo de apresentação de cada frame
+            presentation_time = 510;
+
+            // inicia a apresentação da tela de estudo
+            // Alterna entre as telas de estudo
+            if (study_screen == 0)
+            {
+                display_mario_clothes_counter(presentation_time)
+                    study_screen = 1;
+            }
+            else
+            {
+                display_pokebola_counter(presentation_time);
+                study_screen = 0;
+            }
+        }
+    }
+    else if (gpio == BTN_B_PIN)
+    {
+
         // Garante que o botão A não seja pressionado novamente antes de ser liberado
-        if (timer_on) {
+        if (timer_on)
+        {
             // Inicia o temporizador/
             printf("Botão B pressionado. Interrompendo o contador\n");
+
+            // Cancela o alarme de estudo e descanso
+            if (study_alarm_id != 0)
+            {
+                cancel_alarm(study_alarm_id);
+            }
+
+            // Cancela o alarme de descanso
+            if (rest_alarm_id != 0)
+            {
+                cancel_alarm(rest_alarm_id);
+            }
+
             timer_on = false;
         }
     }
