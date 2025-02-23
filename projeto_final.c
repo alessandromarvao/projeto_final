@@ -86,13 +86,8 @@ int init_led_matrix(bool is_connected)
  */
 int64_t study_timer_callback(alarm_id_t id, void *user_data)
 {
-    timer_on = true;
-    int timer = 510;
-
-    display_mario_clothes_counter(timer);
-
-    // Após os 25 minutos, inicia o período de descanso
-    return TIMER_REST; // Retorna o tempo do descanso para agendar automaticamente
+    // Todo: informar a interrupção do temporizador
+    printf("Temporizador de estudo encerrado\n");
 }
 
 /**
@@ -100,25 +95,8 @@ int64_t study_timer_callback(alarm_id_t id, void *user_data)
  */
 int64_t rest_timer_callback(alarm_id_t id, void *user_data)
 {
-    timer_on = true;
-    int timer = 102;
-
-    display_pokebola_counter(timer);
-
-    ciclo_atual++;
-
-    if (ciclo_atual < TOTAL_CICLOS)
-    {
-        // Se ainda não completamos os ciclos, inicia um novo período de estudo
-        return TIMER_STUDY;
-    }
-    else
-    {
-        // Se os 4 ciclos foram concluídos, desativa o temporizador
-        timer_on = false;
-        ciclo_atual = 0;
-        return 0; // Retorna 0 para encerrar a sequência de alarmes
-    }
+    // Todo: informar a interrupção do temporizador
+    printf("Temporizador de descanso encerrado\n");
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -164,7 +142,15 @@ int main()
             printf("Botão A pressionado. Iniciando o contador\n");
 
             ciclo_atual = 0; // Reset do contador de ciclos
-            add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
+
+            // Função para adicionar um alarme em milissegundos
+            // Parâmetros: TIMER_STUDY: tempo predefinido para acionar o alarme (25 minutos) 
+            //             study_timer_callback
+            //             NULL
+            //             TIMER_REST: tempo predefinido 
+            // add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, TIMER_REST);
+
+            // Todo: Exibir apresentaçao de início do ciclo de estudo
         }
 
         sleep_ms(runtime);
@@ -175,4 +161,5 @@ int main()
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
     // Interrompe o temporizador
+    printf("Botão B pressionado. Interrompendo o contador\n");
 }
