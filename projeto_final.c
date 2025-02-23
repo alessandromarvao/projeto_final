@@ -97,31 +97,31 @@ int init_led_matrix(bool is_connected)
 int64_t study_timer_callback(alarm_id_t id, void *user_data)
 {
     // Todo: informar a interrupção do temporizador
-    printf("Alarme de 25 minutos concluído!\n");
+    printf("Alarme de 25 minutos concluído! Descanse um pouco.\n");
+    // Marca o tempo atual (que atingiu os 25 minutos)
+    uint32_t init_time = to_ms_since_boot(get_absolute_time());
+
+    while (true)
+    {
+        uint32_t time_now = to_ms_since_boot(get_absolute_time());
+
+        if (time_now - init_time >= TIMER_REST){
+            break;
+        }
+
+        display_rain_screen();
+    }
+    
+    /*
 
     // Confere se já concluiu o total de ciclos de estudo
     if (ciclo_atual < TOTAL_CICLOS)
     {
         // Inicia o temporizador de descanso
-        rest_alarm_id = add_alarm_in_ms(TIMER_REST, rest_timer_callback, NULL, false);
-
-        // Tempo de apresentação de cada frame
-        presentation_time = 102;
-
-        // inicia a apresentação da tela de estudo
-        // Alterna entre as telas de estudo
-        if (study_screen == 0)
-        {
-            display_mario_clothes_counter(presentation_time)
-                study_screen = 1;
-        }
-        else
-        {
-            display_pokebola_counter(presentation_time);
-            study_screen = 0;
-        }
+        // rest_alarm_id = add_alarm_in_ms(TIMER_REST, rest_timer_callback, NULL, false);
 
         // apresentação da tela de descanso
+
         display_rain_screen();
 
         // Incrementa o ciclo atual
@@ -132,30 +132,7 @@ int64_t study_timer_callback(alarm_id_t id, void *user_data)
         printf("Ciclo de estudo finalizado\n");
         ciclo_atual = 0;
     }
-}
-
-/**
- * Função de temporizador para os 5 minutos de descanso.
- */
-int64_t rest_timer_callback(alarm_id_t id, void *user_data)
-{
-    // Todo: informar a interrupção do temporizador
-    printf("Temporizador de descanso encerrado\n");
-
-    // Verifica se já concluiu o total de ciclos de estudo
-    if (ciclo_atual < TOTAL_CICLOS)
-    {
-        // Inicia o temporizador de estudo
-        study_alarm_id = add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
-
-        // apresentação da tela de estudo
-        display_fire_2_screen();
-    }
-    else
-    {
-        printf("Ciclo de descanso finalizado\n");
-        ciclo_atual = 0;
-    }
+    */
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -197,9 +174,6 @@ int main()
             runtime = init_led_matrix(is_wifi_connected);
         }
 
-        // Aguarda eventos de interrupção
-        tight_loop_contents();
-
         sleep_ms(runtime);
     }
 
@@ -219,22 +193,6 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 
             // Altera o estado do temporizador para ligado
             timer_on = true;
-
-            // Tempo de apresentação de cada frame
-            presentation_time = 510;
-
-            // inicia a apresentação da tela de estudo
-            // Alterna entre as telas de estudo
-            if (study_screen == 0)
-            {
-                display_mario_clothes_counter(presentation_time)
-                    study_screen = 1;
-            }
-            else
-            {
-                display_pokebola_counter(presentation_time);
-                study_screen = 0;
-            }
         }
     }
     else if (gpio == BTN_B_PIN)

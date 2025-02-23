@@ -244,9 +244,12 @@ void display_timer(int size, int time_ms, const uint32_t hex_array[][25]){
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
     for (int i = 0; i < size; i++)
     {
+        printf("Entrou no primeiro laço");
         // Repete 60x
         for (int j = 0; j < 60; j++) {
+            printf("Entrou no segundo laço");
             for (int slide = 0; slide < 2; slide++) {
+                printf("Entrou no terceiro laço");
                 hex_to_rgb(hex_array[i + slide], rgb_array);
                 display_matrix(time_ms, rgb_array);
             }
