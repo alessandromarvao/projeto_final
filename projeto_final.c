@@ -133,8 +133,6 @@ int main()
 
     display_splash_screen();
 
-    display_embarcatech();
-
     // Estado da conexão com o Wi-Fi
     bool is_wifi_connected = false;
 
