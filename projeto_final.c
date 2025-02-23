@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "pico/time.h"
 
 // Biblioteca que exibe as imagens na matriz de LED RGB
 #include "neopixel.h"
@@ -15,7 +16,7 @@
 #define TIMER_REST 5 * 60 * 1000    // 5 minutos em milissegundos
 
 // Estado do temporizador (ligado ou deslgado)
-static const bool timer_on = false;
+static bool timer_on = false;
 
 // Configuração do botão A no pino 5
 static const uint BTN_A_PIN = 5;
@@ -93,21 +94,23 @@ bool study_timer_callback(alarm_id_t id, void *user_data)
     {
     // Apresentação do contador do Super Mario
     case 0:
-        display_mario_clothes_counter();
+        display_mario_clothes_counter(timer);
         apresentacao++;
         break;
     // Apresentação do contador da pokebola  
     default:
-        display_pokebola_counter();
+        display_pokebola_counter(timer);
         apresentacao = 0;
         break;
     }
+
+    return false;
 }
 
 /**
  * Função de temporizador para os 5 minutos de descanso
  */
-void rest_timer_callback(uint gpio, uint32_t events)
+bool rest_timer_callback(uint gpio, uint32_t events)
 {
     // Ativa o temporizador
     timer_on = true;
@@ -120,15 +123,17 @@ void rest_timer_callback(uint gpio, uint32_t events)
     {
     // Apresentação do contador do Super Mario
     case 0:
-        display_mario_clothes_counter();
+        display_mario_clothes_counter(timer);
         apresentacao++;
         break;
     // Apresentação do contador da pokebola  
     default:
-        display_pokebola_counter();
+        display_pokebola_counter(timer);
         apresentacao = 0;
         break;
     }
+
+    return false;
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -179,8 +184,13 @@ int main()
             {
                 // Aciona o temporizador de 25 minutos para estudo
                 add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
+
+                timer_on = false;
+
                 // Aciona o temporizador de 5 minutos para descanso
                 add_alarm_in_ms(TIMER_REST, rest_timer_callback, NULL, false);
+
+                timer_on = false;
             }
         }
 
