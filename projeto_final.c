@@ -13,7 +13,11 @@
 
 // Configuração do temporizador para 25 minutos de estudo e 5 minutos de descanso
 #define TIMER_STUDY 25 * 60 * 1000 // 25 minutos em milissegundos
-#define TIMER_REST 5 * 60 * 1000    // 5 minutos em milissegundos
+#define TIMER_REST 5 * 60 * 1000   // 5 minutos em milissegundos
+// Configuração do total de ciclos de estudo e descanso
+#define TOTAL_CICLOS 4
+// Valor inicial do ciclo
+static int ciclo_atual = 0;
 
 // Estado do temporizador (ligado ou deslgado)
 static bool timer_on = false;
@@ -34,7 +38,6 @@ static void init_button(uint gpio)
     gpio_set_dir(gpio, GPIO_IN);
     gpio_pull_up(gpio);
 }
-
 
 /**
  * Função que verifica o estado da conexão com o Wi-Fi.
@@ -64,10 +67,12 @@ int init_led_matrix(bool is_connected)
     }
     else
     {
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 15; i++)
+        {
             display_rain_screen();
         }
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 15; i++)
+        {
             display_fire_2_screen();
         }
     }
@@ -75,65 +80,45 @@ int init_led_matrix(bool is_connected)
     return runtime;
 }
 
+
 /**
- * Função de temporizador para os 25 minutos de estudo
- * @param id Identificador do alarme
- * @param user_data Dados do usuário
- * @return bool Retorna verdadeiro se o temporizador estiver ativo
+ * Função de temporizador para os 25 minutos de estudo.
  */
-bool study_timer_callback(alarm_id_t id, void *user_data)
+int64_t study_timer_callback(alarm_id_t id, void *user_data)
 {
-    // Ativa o temporizador
     timer_on = true;
-    // Inicializa o contador das apresentações
-    int apresentacao = 0;
-    // Inicializa o tempo de contagem
     int timer = 510;
 
-    switch (apresentacao)
-    {
-    // Apresentação do contador do Super Mario
-    case 0:
-        display_mario_clothes_counter(timer);
-        apresentacao++;
-        break;
-    // Apresentação do contador da pokebola  
-    default:
-        display_pokebola_counter(timer);
-        apresentacao = 0;
-        break;
-    }
+    display_mario_clothes_counter(timer);
 
-    return false;
+    // Após os 25 minutos, inicia o período de descanso
+    return TIMER_REST; // Retorna o tempo do descanso para agendar automaticamente
 }
 
 /**
- * Função de temporizador para os 5 minutos de descanso
+ * Função de temporizador para os 5 minutos de descanso.
  */
-bool rest_timer_callback(uint gpio, uint32_t events)
+int64_t rest_timer_callback(alarm_id_t id, void *user_data)
 {
-    // Ativa o temporizador
     timer_on = true;
-    // Inicializa o contador das apresentações
-    int apresentacao = 0;
-    // Inicializa o tempo de contagem (102 ms para o total de 5 minutos)
     int timer = 102;
 
-    switch (apresentacao)
-    {
-    // Apresentação do contador do Super Mario
-    case 0:
-        display_mario_clothes_counter(timer);
-        apresentacao++;
-        break;
-    // Apresentação do contador da pokebola  
-    default:
-        display_pokebola_counter(timer);
-        apresentacao = 0;
-        break;
-    }
+    display_pokebola_counter(timer);
 
-    return false;
+    ciclo_atual++;
+
+    if (ciclo_atual < TOTAL_CICLOS)
+    {
+        // Se ainda não completamos os ciclos, inicia um novo período de estudo
+        return TIMER_STUDY;
+    }
+    else
+    {
+        // Se os 4 ciclos foram concluídos, desativa o temporizador
+        timer_on = false;
+        ciclo_atual = 0;
+        return 0; // Retorna 0 para encerrar a sequência de alarmes
+    }
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -147,7 +132,7 @@ int main()
     init_button(BTN_B_PIN);
 
     display_splash_screen();
-    
+
     display_embarcatech();
 
     // Estado da conexão com o Wi-Fi
@@ -166,32 +151,22 @@ int main()
     {
         // Tempo de execução do efeito na matriz de LED
         int runtime;
-     
+
         // Exibe as horas apenas quando o temporizador estiver desligado.
         if (!timer_on)
         {
             // Inicializa a matriz de LED de acordo com o estado da conexão com a rede Wi-Fi
             runtime = init_led_matrix(is_wifi_connected);
         }
-        
+
         btn_A_state = !gpio_get(BTN_A_PIN);
 
         if (!last_btn_A_state && btn_A_state)
         {
             printf("Botão A pressionado. Iniciando o contador\n");
-            // Contagem de 4 ciclos de estudo e descanso
-            for (int i = 0; i < 4; i++)
-            {
-                // Aciona o temporizador de 25 minutos para estudo
-                add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
 
-                timer_on = false;
-
-                // Aciona o temporizador de 5 minutos para descanso
-                add_alarm_in_ms(TIMER_REST, rest_timer_callback, NULL, false);
-
-                timer_on = false;
-            }
+            ciclo_atual = 0; // Reset do contador de ciclos
+            add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, false);
         }
 
         sleep_ms(runtime);
@@ -200,6 +175,6 @@ int main()
 
 // Função de callback
 void gpio_irq_handler(uint gpio, uint32_t events)
-{    
+{
     // Interrompe o temporizador
 }
