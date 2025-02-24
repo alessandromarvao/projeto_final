@@ -59,6 +59,10 @@ int main()
 
     while (true)
     {
+        if (wifi_connected)
+        {
+            run_ntp_test();
+        }
         handle_buttons();
         update_display();
         sleep_ms(10);
@@ -183,25 +187,22 @@ void update_display()
             display_pokebola_counter(500);
         }
 
-
-        if (elapsed >= timer_ctx.duration)
+        if (timer_ctx.study_count < TOTAL_STUDY_SESSIONS)
         {
-            if (timer_ctx.study_count < TOTAL_STUDY_SESSIONS)
+            if (timer_ctx.rest_count < TOTAL_REST_SESSIONS)
             {
-                if (timer_ctx.rest_count < TOTAL_REST_SESSIONS)
-                {
-                    start_rest_session();
-                }
-                else
-                {
-                    stop_timer();
-                }
+                start_rest_session();
             }
             else
             {
                 stop_timer();
             }
         }
+        else
+        {
+            stop_timer();
+        }
+        
         // Atualizar display do estudo
         break;
     }
