@@ -244,9 +244,12 @@ void display_timer(int size, int time_ms, const uint32_t hex_array[][25]){
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
     for (int i = 0; i < size; i++)
     {
+        printf("Entrou no primeiro laço");
         // Repete 60x
         for (int j = 0; j < 60; j++) {
+            printf("Entrou no segundo laço");
             for (int slide = 0; slide < 2; slide++) {
+                printf("Entrou no terceiro laço");
                 hex_to_rgb(hex_array[i + slide], rgb_array);
                 display_matrix(time_ms, rgb_array);
             }
@@ -301,7 +304,7 @@ void display_mario_clothes_counter(int time_ms)
     int size = 26;
     time_ms = time_ms;
 
-    display_timer(size, time_ms, mario_data);
+    display_timer(size, time_ms, super_mario_data);
 
     npWrite();    
 }
@@ -317,7 +320,7 @@ void display_pokebola_counter(int time_ms)
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 26;
-    time_ms = 510;
+    time_ms = time_ms;
 
     display_timer(size, time_ms, pokebola_counter_data);
 
