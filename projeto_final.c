@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/time.h"
+#include "pico/multicore.h"
 #include "hardware/gpio.h"
 #include "neopixel.h"
 #include "ntp_config.h"
@@ -15,8 +16,6 @@
 #define BTN_A_PIN 5
 #define BTN_B_PIN 6
 #define DEBOUNCE_MS 50
-// Configuração do pino do buzzer
-#define BUZZER_PIN_1 10                // Define o pino 21 como o pino de controle do buzzer 1
 
 // Estados do sistema
 typedef enum
@@ -48,18 +47,64 @@ void start_rest_session();
 void stop_timer();
 void gpio_irq_handler(uint gpio, uint32_t events);
 
+void core1_entry()
+{
+    uint32_t action;
+
+    action = multicore_fifo_pop_blocking();
+    
+    // iniciar conexão wireless e sincronização com servidor NTP
+    if (action == 1)
+    {
+        printf("Apresentando Splash Screen...\n");
+        display_splash_screen();
+    }
+    else if (action == 2)
+    { // Tocar música enquanto apresenta animação na matriz de led
+        printf("Apresentando sprites...\n");
+        int random_number = (rand() % 2) + 1; // Gera um número aleatório entre 1 e 2
+
+        if (random_number == 1)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                display_fire_2_screen();
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                display_rain_screen();
+            }
+        }
+    }
+    while (1)
+        tight_loop_contents();
+}
+
 int main()
 {
     stdio_init_all();
     init_hardware();
-    display_splash_screen();
+    // Inicializando o core1
+    multicore_launch_core1(core1_entry);
+    // Enviando instrução para o core1
+    multicore_fifo_push_blocking(1);
 
     bool wifi_connected = wifi_config();
+    
+    sleep_ms(4500);
+
     while (true)
     {
         if (wifi_connected)
         {
             run_ntp_test();
+        }
+        else
+        {
+            display_fire_2_screen();
         }
         handle_buttons();
         update_display();
@@ -75,8 +120,6 @@ void init_hardware()
     gpio_set_dir(BTN_B_PIN, GPIO_IN);
     gpio_pull_up(BTN_A_PIN);
     gpio_pull_up(BTN_B_PIN);
-
-    pwm_init_buzzer(BUZZER_PIN_1);
 
     gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
@@ -178,12 +221,15 @@ void update_display()
     {
         int64_t elapsed = absolute_time_diff_us(timer_ctx.start_time, get_absolute_time());
 
-        srand(time(NULL)); // Inicializa a semente com o tempo atual
+        srand(time(NULL));                    // Inicializa a semente com o tempo atual
         int random_number = (rand() % 2) + 1; // Gera um número aleatório entre 1 e 2
 
-        if (random_number == 1) {
+        if (random_number == 1)
+        {
             display_mario_clothes_counter(5);
-        } else {
+        }
+        else
+        {
             display_pokebola_counter(5);
         }
 
@@ -192,11 +238,11 @@ void update_display()
 
             if (timer_ctx.rest_count < TOTAL_REST_SESSIONS)
             {
-                // Efeito de fogo para informar que o tempo acabou
+                // Enviando instrução para o core1
+                multicore_fifo_push_blocking(2);
                 play_song();
-                for (int i = 0; i < 10; i++) {
-                    display_mushroom_screen();           
-                }
+                display_number_screen(timer_ctx.rest_count);
+
                 start_rest_session();
             }
             else
@@ -208,7 +254,7 @@ void update_display()
         {
             stop_timer();
         }
-        
+
         // Atualizar display do estudo
         break;
     }

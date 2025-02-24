@@ -64,6 +64,7 @@ target_link_libraries(projeto_final
         hardware_rtc
         hardware_pwm
         pico_cyw43_arch_lwip_poll
+        pico_multicore
         )
 
 pico_add_extra_outputs(projeto_final)

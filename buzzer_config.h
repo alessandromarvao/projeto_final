@@ -65,6 +65,7 @@ void play_tone(uint pin, float frequency, uint duration_ms) {
 
 // Função principal para tocar a música
 void play_song() {
+    pwm_init_buzzer(BUZZER_PIN_2);
     // Loop através das notas e durações da música
     for (int i = 0; i < sizeof(notes_1) / sizeof(notes_1[0]); i++) {
         // play_tone(BUZZER_PIN_1, notes_1[i], note_duration_1[i]);

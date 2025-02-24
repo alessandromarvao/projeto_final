@@ -30,6 +30,7 @@
 // Animação para o temporizador do Super Mario minimalista
 #include "sprites/super_mario_clothes.h"
 #include "sprites/mushrooms.h"
+#include "sprites/numbers.h"
 
 // Definição do número de LEDs e pino.
 #define LED_COUNT 25
@@ -147,7 +148,7 @@ static void display_matrix(int time_ms, int rgb_array[5][5][3])
     {
         // Inicializa a matriz de LEDs NeoPixel.
         npInit(LED_PIN);
-        
+
         // Limpa os dados do buffer de pixels.
         npClear();
 
@@ -218,7 +219,8 @@ static void hex_to_rgb(const uint32_t hex_array[25], int rgb_array[5][5][3])
  * @param time_ms Tempo de exibição de cada frame
  * @param hex_array Array de cores hexadecimais (N elementos de 25 caracteres em hexadecimal (cores))
  */
-void display_animation(int size, int time_ms, const uint32_t hex_array[][25]){
+void display_animation(int size, int time_ms, const uint32_t hex_array[][25])
+{
     // Define o tamanho do array de cores RGB
     int rgb_array[5][5][3];
 
@@ -237,19 +239,21 @@ void display_animation(int size, int time_ms, const uint32_t hex_array[][25]){
  * @param time_ms Tempo de exibição de cada frame
  * @param hex_array Array de cores hexadecimais (N elementos de 25 caracteres em hexadecimal (cores))
  */
-void display_timer(int size, int time_ms, const uint32_t hex_array[][25]){
+void display_timer(int size, int time_ms, const uint32_t hex_array[][25])
+{
     // Define o tamanho do array de cores RGB
     int rgb_array[5][5][3];
 
-    
     // Converte as animações do splash_screen_data (em hexadecimal) para o formato RGB
     for (int i = 0; i < size; i++)
     {
         printf("Entrou no primeiro laço");
         // Repete 60x
-        for (int j = 0; j < 60; j++) {
+        for (int j = 0; j < 60; j++)
+        {
             printf("Entrou no segundo laço");
-            for (int slide = 0; slide < 2; slide++) {
+            for (int slide = 0; slide < 2; slide++)
+            {
                 printf("Entrou no terceiro laço");
                 hex_to_rgb(hex_array[i + slide], rgb_array);
                 display_matrix(time_ms, rgb_array);
@@ -289,7 +293,7 @@ void display_mario_counter()
 
     display_animation(size, time_ms, mario_data);
 
-    npWrite();    
+    npWrite();
 }
 
 /**
@@ -307,7 +311,7 @@ void display_mario_clothes_counter(int time_ms)
 
     display_timer(size, time_ms, super_mario_data);
 
-    npWrite();    
+    npWrite();
 }
 
 /**
@@ -325,7 +329,7 @@ void display_pokebola_counter(int time_ms)
 
     display_timer(size, time_ms, pokebola_counter_data);
 
-    npWrite();   
+    npWrite();
 }
 
 void display_heart_counter()
@@ -339,7 +343,7 @@ void display_heart_counter()
 
     display_animation(size, time_ms, heart_data);
 
-    npWrite();       
+    npWrite();
 }
 
 void display_if_logo_counter()
@@ -351,7 +355,7 @@ void display_if_logo_counter()
 
     display_animation(size, time_ms, if_logo_data);
 
-    npWrite();       
+    npWrite();
 }
 
 void display_rain_screen()
@@ -372,7 +376,18 @@ void display_mushroom_screen()
     display_animation(size, time_ms, mushroom_data);
 }
 
-void display_fire_screen() {
+void display_number_screen(int number)
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    hex_to_rgb(numbers_sprite[number], rgb_array);
+
+    display_matrix(10, rgb_array);
+}
+
+void display_fire_screen()
+{
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 6;
@@ -381,7 +396,8 @@ void display_fire_screen() {
     display_animation(size, time_ms, fire_data);
 }
 
-void display_fire_2_screen() {
+void display_fire_2_screen()
+{
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 6;
@@ -390,7 +406,8 @@ void display_fire_2_screen() {
     display_animation(size, time_ms, fire_data);
 }
 
-void display_analogic_watch(int hora, int minutos) {
+void display_analogic_watch(int hora, int minutos)
+{
     int size = 1;
     int time_ms = 0; // Confere o tempo a cada minuto, para reduzir a perda da hora
 
