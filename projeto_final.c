@@ -1,188 +1,177 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/time.h"
-
-// Biblioteca que exibe as imagens na matriz de LED RGB
+#include "hardware/gpio.h"
 #include "neopixel.h"
-// Biblioteca de configuração e acesso à rede sem fio
 #include "wifi_config.h"
-// Biblioteca de configuração e acesso ao servidor NTP
 #include "ntp_config.h"
-// biblioteca responsável pelo gerenciamento do temporizador
-#include "config_timer.h"
 
-// Configuração do temporizador para 25 minutos de estudo e 5 minutos de descanso
-#define TIMER_STUDY 25 * 60 * 1000 // 25 minutos em milissegundos
-#define TIMER_REST 5 * 60 * 1000   // 5 minutos em milissegundos
-// Configuração do total de ciclos de estudo e descanso
+// Configurações
+#define STUDY_TIMER 10 * 1000000  // 25 minutos em microssegundos
+#define REST_TIMER  5 * 1000000   // 5 minutos em microssegundos
 #define TOTAL_CICLOS 4
-// Valor inicial do ciclo
-static int ciclo_atual = 0;
+#define BTN_A_PIN 5
+#define BTN_B_PIN 6
+#define DEBOUNCE_MS 50
 
-int runtime = 30;
+// Estados do sistema
+typedef enum {
+    STATE_IDLE,
+    STATE_STUDY,
+    STATE_REST
+} timer_state_t;
 
-// Estado do temporizador (ligado ou deslgado)
-static bool timer_on = false;
-// Estado do temporizador(Ativo ou não)
-bool isr1_active = false;
-// Estado da interrupção do temporizador (acionado ou não)
-bool isr2_triggered = false;
+// Variáveis compartilhadas (volatile para acesso atômico)
+static volatile bool timer_on = false;
+static volatile bool should_stop = false;
+static volatile bool button_pressed = false;
 
-// Configuração do botão A no pino 5
-static const uint BTN_A_PIN = 5;
-// Configuração do botão B no pino 6
-static const uint BTN_B_PIN = 6;
+// Contexto do timer
+static struct {
+    timer_state_t state;
+    absolute_time_t start_time;
+    uint8_t current_cycle;
+    uint32_t duration;
+} timer_ctx;
 
-static void init_button(uint gpio)
-{
-    gpio_init(gpio);
-    gpio_set_dir(gpio, GPIO_IN);
-    gpio_pull_up(gpio);
-}
-
-/**
- * Função que verifica o estado da conexão com o Wi-Fi.
- * Se houver conexão estabelecida: Exibe o relógio analógico com o horário extraído do servidor NTP
- * Se não houver conexão: Exibe um efeito de fogueira ou chuva
- * @param is_connected boolean indicando se a conexão está estabelecida
- * @return runtime Velocidade do efeito apresentado na matriz de LED
- */
-int init_led_matrix(bool is_connected)
-{
-    if (is_connected)
-    {
-        run_ntp_test();
-
-        // Ajusta o tempo de contagem para 30 segundos
-        runtime = 30 * 1000;
-
-        int hora = get_ntp_hour();
-        int minuto = get_ntp_minute();
-
-        if (hora != -1 && minuto != -1)
-        {
-            display_analogic_watch(hora, minuto);
-        }
-    }
-    else
-    {
-        for (int i = 0; i < 15; i++)
-        {
-            display_rain_screen();
-        }
-        for (int i = 0; i < 15; i++)
-        {
-            display_fire_2_screen();
-        }
-    }
-
-    return runtime;
-}
-
-/**
- * Inicia o temporizador de estudo
- */
-void display_study_timer(){}
-
-/**
- * Inicia o temporizador de repouso
- */
-void display_rest_timer(){}
-
-/**
- * Inicia o temporizador
- */
-void start_timer_handler()
-{
-    // Flag que verifica se o temporizador não está rodando e não há solicitação de interrupção do contador
-    if (!isr1_active && !isr2_triggered)
-    {
-        // Estado da execução do contador ativo
-        isr1_active = true;
-
-        for (int i = 0; i < 4; i++)
-        {
-            printf("Você está na %dª etapa de estudo\n", i + 1);
-        }
-
-        // Desativa o estado da execução do contador
-        isr1_active = false;
-        // Desativa o contador
-        timer_on = false;
-    }
-}
-
-// Função de IRQ quando os botões A ou B forem pressionados
+// Protótipos de funções
+void init_hardware();
+void handle_buttons();
+void update_display();
+void start_study_session();
+void start_rest_session();
+void stop_timer();
 void gpio_irq_handler(uint gpio, uint32_t events);
 
-int main()
-{
+int main() {
     stdio_init_all();
-
-    init_button(BTN_A_PIN);
-    init_button(BTN_B_PIN);
-
+    init_hardware();
     display_splash_screen();
 
-    // Estado da conexão com o Wi-Fi
-    bool is_wifi_connected = false;
+    // Inicialização do WiFi
+    bool wifi_connected = wifi_config();
+    if(wifi_connected) {
+        run_ntp_test();
+    }
 
-    // Recebe o status da conexão com a rede Wi-Fi
-    is_wifi_connected = wifi_config();
-
-    // Tempo de espera para não sobrecarregar o processador
-    sleep_ms(10);
-
-    // Ativa a interrupção para o botão A (detecção de borda de descida)
-    gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
-
-    // Ativa a interrupção para o botão B (detecção de borda de descida)
-    gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
-
-    while (true)
-    {
-        // Tempo de execução do efeito na matriz de LED
-        runtime;
-
-        // Exibe as horas apenas quando o temporizador estiver desligado.
-        if (!timer_on)
-        {
-            // Inicializa a matriz de LED de acordo com o estado da conexão com a rede Wi-Fi
-            runtime = init_led_matrix(is_wifi_connected);
-        }
-
-        sleep_ms(runtime);
+    // Loop principal
+    while(true) {
+        handle_buttons();
+        update_display();
+        sleep_ms(10);
     }
 }
 
-// Função de callback
-void gpio_irq_handler(uint gpio, uint32_t events)
-{
-    if (gpio == BTN_A_PIN)
-    {
-        if (!timer_on)
-        {
-            printf("Botão A pressionado.\n");
-            timer_on = true;
+void init_hardware() {
+    // Configuração dos botões
+    gpio_init(BTN_A_PIN);
+    gpio_init(BTN_B_PIN);
+    gpio_set_dir(BTN_A_PIN, GPIO_IN);
+    gpio_set_dir(BTN_B_PIN, GPIO_IN);
+    gpio_pull_up(BTN_A_PIN);
+    gpio_pull_up(BTN_B_PIN);
 
-            // todo: iniciar o temporizador e repetir 4x
-            // bool isr1_active: indica se o temporizador está ativo (ISR1: prioridade de execução)
-            start_timer_handler();
-        }
+    // Configuração de interrupções
+    gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+    gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+
+    // Inicialização do contexto do timer
+    timer_ctx.state = STATE_IDLE;
+    timer_ctx.current_cycle = 0;
+}
+
+void gpio_irq_handler(uint gpio, uint32_t events) {
+    static absolute_time_t last_press = 0;
+    
+    // Debounce simples
+    if(absolute_time_diff_us(last_press, get_absolute_time()) < DEBOUNCE_MS * 1000) {
+        return;
     }
-    else if (gpio == BTN_B_PIN)
-    {
+    last_press = get_absolute_time();
 
-        // Garante que o botão A não seja pressionado novamente antes de ser liberado
-        if (timer_on)
-        {
-            // Inicia o temporizador/
-            // bool isr1_active: indica se o temporizador está ativo (ISR1: prioridade de execução)
-            // bool isr2_triggered: indica se a interrupção do temporizador foi acionada
-            printf("Botão B pressionado. Interrompendo o contador\n");
-            timer_on = false;
+    if(gpio == BTN_A_PIN) {
+        button_pressed = true;
+    } else if(gpio == BTN_B_PIN) {
+        should_stop = true;
+    }
+}
 
-            // todo:interromper o temporizador
+void handle_buttons() {
+    static absolute_time_t last_update = 0;
+    
+    if(!button_pressed || 
+       absolute_time_diff_us(last_update, get_absolute_time()) < DEBOUNCE_MS * 1000) {
+        return;
+    }
+
+    button_pressed = false;
+    last_update = get_absolute_time();
+
+    if(timer_ctx.state == STATE_IDLE) {
+        start_study_session();
+    }
+}
+
+void start_study_session() {
+    timer_ctx.state = STATE_STUDY;
+    timer_ctx.start_time = get_absolute_time();
+    timer_ctx.duration = STUDY_TIMER;
+    timer_ctx.current_cycle = 0;
+    printf("Study session started\n");
+}
+
+void start_rest_session() {
+    timer_ctx.state = STATE_REST;
+    timer_ctx.start_time = get_absolute_time();
+    timer_ctx.duration = REST_TIMER;
+    printf("Rest session started\n");
+}
+
+void stop_timer() {
+    timer_ctx.state = STATE_IDLE;
+    should_stop = false;
+    printf("Timer stopped\n");
+}
+
+void update_display() {
+    static absolute_time_t last_display_update = 0;
+    
+    // Atualização do display a cada 100ms
+    if(absolute_time_diff_us(last_display_update, get_absolute_time()) < 100000) {
+        return;
+    }
+    last_display_update = get_absolute_time();
+
+    // Lógica do timer
+    if(should_stop) {
+        stop_timer();
+    }
+
+    switch(timer_ctx.state) {
+        case STATE_IDLE:
+            display_analogic_watch(get_ntp_hour(), get_ntp_minute());
+            break;
+
+        case STATE_STUDY: {
+            int64_t elapsed = absolute_time_diff_us(timer_ctx.start_time, get_absolute_time());
+            if(elapsed >= timer_ctx.duration || should_stop) {
+                if(++timer_ctx.current_cycle >= TOTAL_CICLOS) {
+                    stop_timer();
+                } else {
+                    start_rest_session();
+                }
+            }
+            // Atualizar display do timer de estudo
+            break;
+        }
+
+        case STATE_REST: {
+            int64_t elapsed = absolute_time_diff_us(timer_ctx.start_time, get_absolute_time());
+            if(elapsed >= timer_ctx.duration || should_stop) {
+                start_study_session();
+            }
+            // Atualizar display do timer de descanso
+            break;
         }
     }
 }
