@@ -6,10 +6,11 @@
 #include "wifi_config.h"
 #include "ntp_config.h"
 
-// Configurações
+// Configurações atualizadas
 #define STUDY_TIMER 10 * 1000000  // 25 minutos em microssegundos
 #define REST_TIMER  5 * 1000000   // 5 minutos em microssegundos
-#define TOTAL_CICLOS 4
+#define TOTAL_STUDY_SESSIONS 4        // 4 sessões de estudo
+#define TOTAL_REST_SESSIONS 3         // 3 sessões de descanso
 #define BTN_A_PIN 5
 #define BTN_B_PIN 6
 #define DEBOUNCE_MS 50
@@ -21,20 +22,19 @@ typedef enum {
     STATE_REST
 } timer_state_t;
 
-// Variáveis compartilhadas (volatile para acesso atômico)
-static volatile bool timer_on = false;
-static volatile bool should_stop = false;
+// Variáveis compartilhadas
 static volatile bool button_pressed = false;
+static volatile bool should_stop = false;
 
 // Contexto do timer
 static struct {
     timer_state_t state;
     absolute_time_t start_time;
-    uint8_t current_cycle;
+    uint8_t study_count;
+    uint8_t rest_count;
     uint32_t duration;
 } timer_ctx;
 
-// Protótipos de funções
 void init_hardware();
 void handle_buttons();
 void update_display();
@@ -48,13 +48,11 @@ int main() {
     init_hardware();
     display_splash_screen();
 
-    // Inicialização do WiFi
     bool wifi_connected = wifi_config();
     if(wifi_connected) {
         run_ntp_test();
     }
 
-    // Loop principal
     while(true) {
         handle_buttons();
         update_display();
@@ -63,7 +61,6 @@ int main() {
 }
 
 void init_hardware() {
-    // Configuração dos botões
     gpio_init(BTN_A_PIN);
     gpio_init(BTN_B_PIN);
     gpio_set_dir(BTN_A_PIN, GPIO_IN);
@@ -71,19 +68,17 @@ void init_hardware() {
     gpio_pull_up(BTN_A_PIN);
     gpio_pull_up(BTN_B_PIN);
 
-    // Configuração de interrupções
     gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
-    // Inicialização do contexto do timer
     timer_ctx.state = STATE_IDLE;
-    timer_ctx.current_cycle = 0;
+    timer_ctx.study_count = 0;
+    timer_ctx.rest_count = 0;
 }
 
 void gpio_irq_handler(uint gpio, uint32_t events) {
     static absolute_time_t last_press = 0;
     
-    // Debounce simples
     if(absolute_time_diff_us(last_press, get_absolute_time()) < DEBOUNCE_MS * 1000) {
         return;
     }
@@ -108,6 +103,8 @@ void handle_buttons() {
     last_update = get_absolute_time();
 
     if(timer_ctx.state == STATE_IDLE) {
+        timer_ctx.study_count = 0;
+        timer_ctx.rest_count = 0;
         start_study_session();
     }
 }
@@ -116,35 +113,35 @@ void start_study_session() {
     timer_ctx.state = STATE_STUDY;
     timer_ctx.start_time = get_absolute_time();
     timer_ctx.duration = STUDY_TIMER;
-    timer_ctx.current_cycle = 0;
-    printf("Study session started\n");
+    timer_ctx.study_count++;
+    printf("Iniciando estudo %d/%d\n", timer_ctx.study_count, TOTAL_STUDY_SESSIONS);
 }
 
 void start_rest_session() {
     timer_ctx.state = STATE_REST;
     timer_ctx.start_time = get_absolute_time();
     timer_ctx.duration = REST_TIMER;
-    printf("Rest session started\n");
+    timer_ctx.rest_count++;
+    printf("Iniciando descanso %d/%d\n", timer_ctx.rest_count, TOTAL_REST_SESSIONS);
 }
 
 void stop_timer() {
     timer_ctx.state = STATE_IDLE;
     should_stop = false;
-    printf("Timer stopped\n");
+    printf("Timer finalizado!\n");
 }
 
 void update_display() {
     static absolute_time_t last_display_update = 0;
     
-    // Atualização do display a cada 100ms
     if(absolute_time_diff_us(last_display_update, get_absolute_time()) < 100000) {
         return;
     }
     last_display_update = get_absolute_time();
 
-    // Lógica do timer
     if(should_stop) {
         stop_timer();
+        return;
     }
 
     switch(timer_ctx.state) {
@@ -154,23 +151,31 @@ void update_display() {
 
         case STATE_STUDY: {
             int64_t elapsed = absolute_time_diff_us(timer_ctx.start_time, get_absolute_time());
-            if(elapsed >= timer_ctx.duration || should_stop) {
-                if(++timer_ctx.current_cycle >= TOTAL_CICLOS) {
-                    stop_timer();
+            if(elapsed >= timer_ctx.duration) {
+                if(timer_ctx.study_count < TOTAL_STUDY_SESSIONS) {
+                    if(timer_ctx.rest_count < TOTAL_REST_SESSIONS) {
+                        start_rest_session();
+                    } else {
+                        stop_timer();
+                    }
                 } else {
-                    start_rest_session();
+                    stop_timer();
                 }
             }
-            // Atualizar display do timer de estudo
+            // Atualizar display do estudo
             break;
         }
 
         case STATE_REST: {
             int64_t elapsed = absolute_time_diff_us(timer_ctx.start_time, get_absolute_time());
-            if(elapsed >= timer_ctx.duration || should_stop) {
-                start_study_session();
+            if(elapsed >= timer_ctx.duration) {
+                if(timer_ctx.study_count < TOTAL_STUDY_SESSIONS) {
+                    start_study_session();
+                } else {
+                    stop_timer();
+                }
             }
-            // Atualizar display do timer de descanso
+            // Atualizar display do descanso
             break;
         }
     }
