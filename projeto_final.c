@@ -3,8 +3,9 @@
 #include "pico/time.h"
 #include "hardware/gpio.h"
 #include "neopixel.h"
-#include "wifi_config.h"
 #include "ntp_config.h"
+#include "wifi_config.h"
+#include "buzzer_config.h"
 
 // Configurações atualizadas
 #define STUDY_TIMER 25 * 60 * 1000 // 25 minutos em microssegundos
@@ -14,6 +15,8 @@
 #define BTN_A_PIN 5
 #define BTN_B_PIN 6
 #define DEBOUNCE_MS 50
+// Configuração do pino do buzzer
+#define BUZZER_PIN_1 10                // Define o pino 21 como o pino de controle do buzzer 1
 
 // Estados do sistema
 typedef enum
@@ -52,11 +55,6 @@ int main()
     display_splash_screen();
 
     bool wifi_connected = wifi_config();
-    if (wifi_connected)
-    {
-        run_ntp_test();
-    }
-
     while (true)
     {
         if (wifi_connected)
@@ -77,6 +75,8 @@ void init_hardware()
     gpio_set_dir(BTN_B_PIN, GPIO_IN);
     gpio_pull_up(BTN_A_PIN);
     gpio_pull_up(BTN_B_PIN);
+
+    pwm_init_buzzer(BUZZER_PIN_1);
 
     gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
@@ -182,15 +182,21 @@ void update_display()
         int random_number = (rand() % 2) + 1; // Gera um número aleatório entre 1 e 2
 
         if (random_number == 1) {
-            display_mario_clothes_counter(500);
+            display_mario_clothes_counter(5);
         } else {
-            display_pokebola_counter(500);
+            display_pokebola_counter(5);
         }
 
         if (timer_ctx.study_count < TOTAL_STUDY_SESSIONS)
         {
+
             if (timer_ctx.rest_count < TOTAL_REST_SESSIONS)
             {
+                // Efeito de fogo para informar que o tempo acabou
+                play_song();
+                for (int i = 0; i < 10; i++) {
+                    display_mushroom_screen();           
+                }
                 start_rest_session();
             }
             else
@@ -210,8 +216,6 @@ void update_display()
     case STATE_REST:
     {
         int64_t elapsed = absolute_time_diff_us(timer_ctx.start_time, get_absolute_time());
-
-        display_fire_2_screen;
 
         if (elapsed >= timer_ctx.duration)
         {

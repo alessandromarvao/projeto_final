@@ -147,6 +147,9 @@ static NTP_T *ntp_init(void)
 // Executa o teste NTP uma única vez
 void run_ntp_test(void)
 {
+    // Pausa de 30s para evitar problemas de sincronização e não sobrecarregar o servidor de requisições
+    sleep_ms(30000);
+
     NTP_T *state = ntp_init();
     if (!state)
         return;

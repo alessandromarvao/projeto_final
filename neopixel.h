@@ -29,6 +29,7 @@
 #include "sprites/super_mario.h"
 // Animação para o temporizador do Super Mario minimalista
 #include "sprites/super_mario_clothes.h"
+#include "sprites/mushrooms.h"
 
 // Definição do número de LEDs e pino.
 #define LED_COUNT 25
@@ -360,6 +361,15 @@ void display_rain_screen()
     int time_ms = 80;
 
     display_animation(size, time_ms, rain_data);
+}
+
+void display_mushroom_screen()
+{
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 6;
+    int time_ms = 150;
+
+    display_animation(size, time_ms, mushroom_data);
 }
 
 void display_fire_screen() {
