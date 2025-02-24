@@ -19,8 +19,14 @@
 // Valor inicial do ciclo
 static int ciclo_atual = 0;
 
+int runtime = 30;
+
 // Estado do temporizador (ligado ou deslgado)
 static bool timer_on = false;
+// Estado do temporizador(Ativo ou não)
+bool isr1_active = false;
+// Estado da interrupção do temporizador (acionado ou não)
+bool isr2_triggered = false;
 
 // Configuração do botão A no pino 5
 static const uint BTN_A_PIN = 5;
@@ -43,8 +49,6 @@ static void init_button(uint gpio)
  */
 int init_led_matrix(bool is_connected)
 {
-    int runtime = 50;
-
     if (is_connected)
     {
         run_ntp_test();
@@ -75,23 +79,37 @@ int init_led_matrix(bool is_connected)
     return runtime;
 }
 
+/**
+ * Inicia o temporizador de estudo
+ */
+void display_study_timer(){}
 
 /**
- * Função de temporizador para os 25 minutos de estudo.
+ * Inicia o temporizador de repouso
  */
-int64_t study_timer_callback(alarm_id_t id, void *user_data)
-{
-    // Todo: informar a interrupção do temporizador
-    printf("Temporizador de estudo encerrado\n");
-}
+void display_rest_timer(){}
 
 /**
- * Função de temporizador para os 5 minutos de descanso.
+ * Inicia o temporizador
  */
-int64_t rest_timer_callback(alarm_id_t id, void *user_data)
+void start_timer_handler()
 {
-    // Todo: informar a interrupção do temporizador
-    printf("Temporizador de descanso encerrado\n");
+    // Flag que verifica se o temporizador não está rodando e não há solicitação de interrupção do contador
+    if (!isr1_active && !isr2_triggered)
+    {
+        // Estado da execução do contador ativo
+        isr1_active = true;
+
+        for (int i = 0; i < 4; i++)
+        {
+            printf("Você está na %dª etapa de estudo\n", i + 1);
+        }
+
+        // Desativa o estado da execução do contador
+        isr1_active = false;
+        // Desativa o contador
+        timer_on = false;
+    }
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -124,7 +142,7 @@ int main()
     while (true)
     {
         // Tempo de execução do efeito na matriz de LED
-        int runtime;
+        runtime;
 
         // Exibe as horas apenas quando o temporizador estiver desligado.
         if (!timer_on)
@@ -140,19 +158,31 @@ int main()
 // Função de callback
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
-    if(gpio == BTN_A_PIN) {
-        if (!timer_on) {
+    if (gpio == BTN_A_PIN)
+    {
+        if (!timer_on)
+        {
             printf("Botão A pressionado.\n");
             timer_on = true;
-        }
 
-    } else if (gpio == BTN_B_PIN) {
-        
+            // todo: iniciar o temporizador e repetir 4x
+            // bool isr1_active: indica se o temporizador está ativo (ISR1: prioridade de execução)
+            start_timer_handler();
+        }
+    }
+    else if (gpio == BTN_B_PIN)
+    {
+
         // Garante que o botão A não seja pressionado novamente antes de ser liberado
-        if (timer_on) {
+        if (timer_on)
+        {
             // Inicia o temporizador/
+            // bool isr1_active: indica se o temporizador está ativo (ISR1: prioridade de execução)
+            // bool isr2_triggered: indica se a interrupção do temporizador foi acionada
             printf("Botão B pressionado. Interrompendo o contador\n");
             timer_on = false;
+
+            // todo:interromper o temporizador
         }
     }
 }

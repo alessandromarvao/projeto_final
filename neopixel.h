@@ -299,7 +299,7 @@ void display_mario_clothes_counter(int time_ms)
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 26;
-    time_ms = 510;
+    time_ms = time_ms;
 
     display_timer(size, time_ms, mario_data);
 
