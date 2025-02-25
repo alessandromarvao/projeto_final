@@ -13,13 +13,11 @@
 #include "config_timer.h"
 #include "buzzer_config.h"
 
-// Configuração do temporizador para 25 minutos de estudo e 5 minutos de descanso
-#define TIMER_STUDY 25 * 60 * 1000 // 25 minutos em milissegundos
-#define TIMER_REST 5 * 60 * 1000   // 5 minutos em milissegundos
+#define STUDY_TIMER 500
+#define REST_TIMER 100
 
 // Configuração do total de ciclos de estudo e descanso
 #define STUDY_CYCLE 4
-#define REST_CYCLE 3
 // Valor atual do ciclo (inicia em 0)
 static int cycle = 0;
 
@@ -118,7 +116,7 @@ void core1_entry()
     uint32_t action;
 
     action = multicore_fifo_pop_blocking();
-    
+
     // iniciar conexão wireless e sincronização com servidor NTP
     if (action == 1)
     {
@@ -127,23 +125,8 @@ void core1_entry()
     }
     else if (action == 2)
     { // Tocar música enquanto apresenta animação na matriz de led
-        printf("Apresentando sprites...\n");
-        int random_number = (rand() % 2) + 1; // Gera um número aleatório entre 1 e 2
-
-        if (random_number == 1)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                display_fire_2_screen();
-            }
-        }
-        else
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                display_rain_screen();
-            }
-        }
+        
+        display_timer_animation(REST_TIMER);
     }
     while (1)
         tight_loop_contents();
@@ -199,33 +182,41 @@ int main()
             printf("Botão A pressionado. Iniciando o contador\n");
 
             // Reset do contador de ciclos
-            cycle = 0;     
+            cycle = 0;
         }
 
         btn_A_last_state = btn_A_state;
 
         // Inicia os ciclos de estudos
-        while (timer_on && (cycle < STUDY_CYCLE)) {
-            if (cycle == 0) {
+        while (timer_on && (cycle < STUDY_CYCLE))
+        {
+            if (cycle == 0)
+            {
                 printf("Iniciando o temporizador. Bons estudos!\n");
-            } else {
-                printf("Ciclo %d de %d.\n", cycle);
             }
+            else
+            {
+                printf("Ciclo %d de %d.\n", cycle, STUDY_CYCLE);
+            }
+
             // Executa as apresentações durante o tempo de descanso
-            display_timer_animation(500);
-            
+            display_timer_animation(STUDY_TIMER);
+
             // Apaga a matriz de LED
             turn_off();
 
             // Alerta sonoro para início do tempo de repouso
             play_song();
-            
-            // Só executa o tempo de descanso até o penúltimo ciclo de estudo 
+
+            // Só executa o tempo de descanso até o penúltimo ciclo de estudo
             // (não faz sentido marcar o tempo de descanso depois que terminar os estudos)
-            if(cycle  < 3) {
+            if (cycle < 3)
+            {
                 printf("Ciclo de estudo concluído, descanse um pouco.\n");
-                display_timer_animation(100);
-                
+
+                // Enviando instrução para o core1
+                multicore_fifo_push_blocking(2);
+
                 // Alerta sonoro para retorno do estudo
                 play_alarm();
             }
@@ -239,6 +230,7 @@ int main()
         // Garante que o ciclo de estudos esteja desligado
         timer_on = false;
 
+        cycle = 0;
 
         sleep_ms(runtime);
     }
