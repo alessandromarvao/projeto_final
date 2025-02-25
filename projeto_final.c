@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/time.h"
+#include "pico/multicore.h"
 
 // Biblioteca que exibe as imagens na matriz de LED RGB
 #include "neopixel.h"
@@ -10,17 +11,21 @@
 #include "ntp_config.h"
 // biblioteca responsável pelo gerenciamento do temporizador
 #include "config_timer.h"
+#include "buzzer_config.h"
 
 // Configuração do temporizador para 25 minutos de estudo e 5 minutos de descanso
 #define TIMER_STUDY 25 * 60 * 1000 // 25 minutos em milissegundos
 #define TIMER_REST 5 * 60 * 1000   // 5 minutos em milissegundos
+
 // Configuração do total de ciclos de estudo e descanso
-#define TOTAL_CICLOS 4
-// Valor inicial do ciclo
-static int ciclo_atual = 0;
+#define STUDY_CYCLE 4
+#define REST_CYCLE 3
+// Valor atual do ciclo (inicia em 0)
+static int cycle = 0;
 
 // Estado do temporizador (ligado ou deslgado)
-static bool timer_on = false;
+static volatile bool timer_on = false;
+int runtime;
 
 // Configuração do botão A no pino 5
 static const uint BTN_A_PIN = 5;
@@ -30,7 +35,7 @@ static const uint BTN_B_PIN = 6;
 // Estado atual do botão A
 bool btn_A_state = false;
 // Estado anterior do botão A
-volatile bool last_btn_A_state = false;
+volatile bool btn_A_last_state = false;
 
 static void init_button(uint gpio)
 {
@@ -48,14 +53,15 @@ static void init_button(uint gpio)
  */
 int init_led_matrix(bool is_connected)
 {
-    int runtime = 50;
+    // Tempo de sincronização com o servidor NTP: 2 segundos
+    runtime = 2 * 1000;
 
     if (is_connected)
     {
         run_ntp_test();
 
         // Ajusta o tempo de contagem para 30 segundos
-        runtime = 30 * 1000;
+        runtime = 1 * 1000;
 
         int hora = get_ntp_hour();
         int minuto = get_ntp_minute();
@@ -80,23 +86,67 @@ int init_led_matrix(bool is_connected)
     return runtime;
 }
 
-
-/**
- * Função de temporizador para os 25 minutos de estudo.
- */
-int64_t study_timer_callback(alarm_id_t id, void *user_data)
+void display_timer_animation(int time_ms)
 {
-    // Todo: informar a interrupção do temporizador
-    printf("Temporizador de estudo encerrado\n");
+    // Gera um número aleatório entre 0 e 5
+    srand(time(NULL));
+    int random_number = rand() % 7;
+
+    switch (random_number)
+    {
+    case 0:
+        display_iron_man_counter(time_ms);
+        break;
+    case 2:
+        display_kirby_counter(time_ms);
+        break;
+    case 3:
+        display_luighi_counter(time_ms);
+        break;
+    case 4:
+        display_mario_clothes_counter(time_ms);
+        break;
+    case 5:
+        display_pikachu_counter(time_ms);
+    default:
+        display_pokebola_counter(time_ms);
+    }
 }
 
-/**
- * Função de temporizador para os 5 minutos de descanso.
- */
-int64_t rest_timer_callback(alarm_id_t id, void *user_data)
+void core1_entry()
 {
-    // Todo: informar a interrupção do temporizador
-    printf("Temporizador de descanso encerrado\n");
+    uint32_t action;
+
+    action = multicore_fifo_pop_blocking();
+    
+    // iniciar conexão wireless e sincronização com servidor NTP
+    if (action == 1)
+    {
+        printf("Apresentando Splash Screen...\n");
+        display_splash_screen();
+    }
+    else if (action == 2)
+    { // Tocar música enquanto apresenta animação na matriz de led
+        printf("Apresentando sprites...\n");
+        int random_number = (rand() % 2) + 1; // Gera um número aleatório entre 1 e 2
+
+        if (random_number == 1)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                display_fire_2_screen();
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                display_rain_screen();
+            }
+        }
+    }
+    while (1)
+        tight_loop_contents();
 }
 
 // Função de IRQ quando os botões A ou B forem pressionados
@@ -108,8 +158,12 @@ int main()
 
     init_button(BTN_A_PIN);
     init_button(BTN_B_PIN);
+    pwm_init_buzzer(BUZZER_PIN_2);
 
-    display_splash_screen();
+    // Inicializando o core1
+    multicore_launch_core1(core1_entry);
+    // Enviando instrução para o core1
+    multicore_fifo_push_blocking(1);
 
     // Estado da conexão com o Wi-Fi
     bool is_wifi_connected = false;
@@ -126,7 +180,7 @@ int main()
     while (true)
     {
         // Tempo de execução do efeito na matriz de LED
-        int runtime;
+        runtime = 10;
 
         // Exibe as horas apenas quando o temporizador estiver desligado.
         if (!timer_on)
@@ -137,21 +191,54 @@ int main()
 
         btn_A_state = !gpio_get(BTN_A_PIN);
 
-        if (!last_btn_A_state && btn_A_state)
+        if (!btn_A_last_state && btn_A_state)
         {
+            // Altera o estado do temporizador para ligado
+            timer_on = true;
+
             printf("Botão A pressionado. Iniciando o contador\n");
 
-            ciclo_atual = 0; // Reset do contador de ciclos
-
-            // Função para adicionar um alarme em milissegundos
-            // Parâmetros: TIMER_STUDY: tempo predefinido para acionar o alarme (25 minutos) 
-            //             study_timer_callback
-            //             NULL
-            //             TIMER_REST: tempo predefinido 
-            // add_alarm_in_ms(TIMER_STUDY, study_timer_callback, NULL, TIMER_REST);
-
-            // Todo: Exibir apresentaçao de início do ciclo de estudo
+            // Reset do contador de ciclos
+            cycle = 0;     
         }
+
+        btn_A_last_state = btn_A_state;
+
+        // Inicia os ciclos de estudos
+        while (timer_on && (cycle < STUDY_CYCLE)) {
+            if (cycle == 0) {
+                printf("Iniciando o temporizador. Bons estudos!\n");
+            } else {
+                printf("Ciclo %d de %d.\n", cycle);
+            }
+            // Executa as apresentações durante o tempo de descanso
+            display_timer_animation(500);
+            
+            // Apaga a matriz de LED
+            turn_off();
+
+            // Alerta sonoro para início do tempo de repouso
+            play_song();
+            
+            // Só executa o tempo de descanso até o penúltimo ciclo de estudo 
+            // (não faz sentido marcar o tempo de descanso depois que terminar os estudos)
+            if(cycle  < 3) {
+                printf("Ciclo de estudo concluído, descanse um pouco.\n");
+                display_timer_animation(100);
+                
+                // Alerta sonoro para retorno do estudo
+                play_alarm();
+            }
+
+            // Apaga a matriz de LED
+            turn_off();
+
+            cycle++;
+        }
+
+        // Garante que o ciclo de estudos esteja desligado
+        timer_on = false;
+
 
         sleep_ms(runtime);
     }
@@ -162,4 +249,5 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 {
     // Interrompe o temporizador
     printf("Botão B pressionado. Interrompendo o contador\n");
+    timer_on = false;
 }

@@ -25,8 +25,16 @@
 #include "sprites/rain.h"
 // Animação para tela inicial
 #include "sprites/splash_screen.h"
-// Animação para o temporizador do Super Mario
-#include "sprites/super_mario.h"
+// Animação para o temporizador do Luighi (Super Mario Bros)
+#include "sprites/luighi_counter.h"
+// Animação para o temporizador do Homem de Ferro
+#include "sprites/iron_man_counter.h"
+// Animação para o temporizador do Kirby
+#include "sprites/kirby_counter.h"
+// Animação de congumelos do Super Mario Bros
+#include "sprites/mushrooms.h"
+// Animação para o temporizador do Pikachu
+#include "sprites/pikachu_counter.h"
 // Animação para o temporizador do Super Mario minimalista
 #include "sprites/super_mario_clothes.h"
 
@@ -176,7 +184,7 @@ static void display_matrix(int time_ms, int rgb_array[5][5][3])
 /**
  * Função que apaga os LEDs da matriz
  */
-static void turn_off()
+void turn_off()
 {
     // Limpa os dados de todos os LEDs.
     npClear();
@@ -273,23 +281,6 @@ void display_splash_screen()
 
 /**
  * Executa a animação do contador que forma a imagem do Super Mario (Shiu! A Nintendo não pode saber disso!)
- */
-void display_mario_counter()
-{
-    // Define o tamanho do array de cores RGB
-    int rgb_array[5][5][3];
-
-    // Define a quantidade de elementos a serem exibidos na Matriz de LED
-    int size = 25;
-    int time_ms = 25 * 60 * 1000;
-
-    display_animation(size, time_ms, mario_data);
-
-    npWrite();    
-}
-
-/**
- * Executa a animação do contador que forma a imagem do Super Mario (Shiu! A Nintendo não pode saber disso!)
  * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 510, para 5 minutos: 102)
  */
 void display_mario_clothes_counter(int time_ms)
@@ -299,11 +290,83 @@ void display_mario_clothes_counter(int time_ms)
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 26;
-    time_ms = 510;
+    time_ms = time_ms;
 
-    display_timer(size, time_ms, mario_data);
+    display_timer(size, time_ms, super_mario_data);
 
     npWrite();    
+}
+
+/**
+ * Executa a animação do contador que forma uma a imagem do Luighi
+ * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 500, para 5 minutos: 100)
+ */
+void display_luighi_counter(int time_ms)
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 26;
+    time_ms = time_ms;
+
+    display_timer(size, time_ms, luighi);
+
+    npWrite();   
+}
+
+/**
+ * Executa a animação do contador que forma a imagem do Kirby
+ * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 510, para 5 minutos: 102)
+ */
+void display_kirby_counter(int time_ms)
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 26;
+    time_ms = time_ms;
+
+    display_timer(size, time_ms, kirby);
+
+    npWrite();   
+}
+
+/**
+ * Executa a animação do contador que forma a imagem do Homem de Ferro
+ * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 510, para 5 minutos: 102)
+ */
+void display_iron_man_counter(int time_ms)
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 26;
+    time_ms = time_ms;
+
+    display_timer(size, time_ms, iron_man);
+
+    npWrite();   
+}
+
+/**
+ * Executa a animação do contador que forma a imagem do pikachu (Eu tô procurando conversa com a Nintendo mesmo, hein?!)
+ * @param time_ms Tempo de exibição de cada frame (para 25 minutos: 510, para 5 minutos: 102)
+ */
+void display_pikachu_counter(int time_ms)
+{
+    // Define o tamanho do array de cores RGB
+    int rgb_array[5][5][3];
+
+    // Define a quantidade de elementos a serem exibidos na Matriz de LED
+    int size = 26;
+    time_ms = time_ms;
+
+    display_timer(size, time_ms, pikachu);
+
+    npWrite();   
 }
 
 /**
@@ -317,9 +380,9 @@ void display_pokebola_counter(int time_ms)
 
     // Define a quantidade de elementos a serem exibidos na Matriz de LED
     int size = 26;
-    time_ms = 510;
+    time_ms = time_ms;
 
-    display_timer(size, time_ms, pokebola_counter_data);
+    display_timer(size, time_ms, pokebola);
 
     npWrite();   
 }

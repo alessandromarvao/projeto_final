@@ -9,7 +9,7 @@
 
 /* Piskel data for "pokebola_counter" */
 
-static const uint32_t pokebola_counter_data[26][25] = {
+static const uint32_t pokebola[26][25] = {
 {
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 
