@@ -13,8 +13,10 @@
 #include "config_timer.h"
 #include "buzzer_config.h"
 
-#define STUDY_TIMER 500
-#define REST_TIMER 100
+// 500ms para completar 25 minutos no total
+#define STUDY_TIMER 25 * 60 * 1000
+// 100ms para completar 5 minutos no total
+#define REST_TIMER 5 * 60 * 1000
 
 // Configuração do total de ciclos de estudo e descanso
 #define STUDY_CYCLE 4
@@ -219,6 +221,9 @@ int main()
 
                 // Alerta sonoro para retorno do estudo
                 play_alarm();
+
+                // Aguarda o tempo de descanso
+                sleep_ms(REST_TIMER);
             }
 
             // Apaga a matriz de LED
