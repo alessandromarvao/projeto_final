@@ -14,7 +14,7 @@
 #include "buzzer_config.h"
 
 // 500ms para completar 25 minutos no total
-#define STUDY_TIMER 25 * 60 * 1000
+#define STUDY_TIMER 500
 // 100ms para completar 5 minutos no total
 #define REST_TIMER 5 * 60 * 1000
 
@@ -128,8 +128,11 @@ void core1_entry()
     else if (action == 2)
     { // Tocar música enquanto apresenta animação na matriz de led
         
-        display_timer_animation(REST_TIMER);
+        display_timer_animation(100);
     }
+
+    multicore_fifo_push_blocking(action);
+
     while (1)
         tight_loop_contents();
 }
@@ -157,7 +160,7 @@ int main()
     is_wifi_connected = wifi_config();
 
     // Tempo de espera para não sobrecarregar o processador
-    sleep_ms(10);
+    sleep_ms(3000);
 
     // Ativa a interrupção para o botão B (detecção de borda de descida)
     gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
@@ -192,14 +195,9 @@ int main()
         // Inicia os ciclos de estudos
         while (timer_on && (cycle < STUDY_CYCLE))
         {
-            if (cycle == 0)
-            {
-                printf("Iniciando o temporizador. Bons estudos!\n");
-            }
-            else
-            {
-                printf("Ciclo %d de %d.\n", cycle, STUDY_CYCLE);
-            }
+            cycle++;
+
+            printf("Ciclo %d de %d.\n", cycle, STUDY_CYCLE);
 
             // Executa as apresentações durante o tempo de descanso
             display_timer_animation(STUDY_TIMER);
@@ -212,24 +210,22 @@ int main()
 
             // Só executa o tempo de descanso até o penúltimo ciclo de estudo
             // (não faz sentido marcar o tempo de descanso depois que terminar os estudos)
-            if (cycle < 3)
+            if (cycle <= 3)
             {
                 printf("Ciclo de estudo concluído, descanse um pouco.\n");
 
                 // Enviando instrução para o core1
                 multicore_fifo_push_blocking(2);
 
-                // Alerta sonoro para retorno do estudo
-                play_alarm();
-
                 // Aguarda o tempo de descanso
                 sleep_ms(REST_TIMER);
+
+                // Alerta sonoro para retorno do estudo
+                play_alarm();
             }
 
             // Apaga a matriz de LED
             turn_off();
-
-            cycle++;
         }
 
         // Garante que o ciclo de estudos esteja desligado

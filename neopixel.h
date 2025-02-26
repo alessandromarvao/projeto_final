@@ -100,9 +100,9 @@ static void npInit(uint pin)
  */
 static void npSetLED(const uint index, const uint8_t r, const uint8_t g, const uint8_t b)
 {
-    leds[index].R = r * 0.66;
-    leds[index].G = g * 0.66;
-    leds[index].B = b * 0.66;
+    leds[index].R = r * 0.88;
+    leds[index].G = g * 0.88;
+    leds[index].B = b * 0.88;
 }
 
 /**
