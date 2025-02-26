@@ -255,8 +255,10 @@ void display_timer(int size, int time_ms, const uint32_t hex_array[][25]){
         // Repete 60x
         for (int j = 0; j < 60; j++) {
             for (int slide = 0; slide < 2; slide++) {
-                hex_to_rgb(hex_array[i + slide], rgb_array);
-                display_matrix(time_ms, rgb_array);
+                if (i < (size - 1)) {
+                    hex_to_rgb(hex_array[i + slide], rgb_array);
+                    display_matrix(time_ms, rgb_array);
+                }
             }
         }
     }
